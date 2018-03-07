@@ -14,10 +14,9 @@
 
     [task launch];
     [task waitUntilExit];
-    [task release];
 
     NSData *data = [[out fileHandleForReading] readDataToEndOfFile];
-    NSString *ouputString = [[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] autorelease];
+    NSString *ouputString = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
 
     NSArray *split = [ouputString componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]];
     split = [split filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"length > 0"]];
@@ -25,14 +24,16 @@
     NSArray *array = [res componentsSeparatedByCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
     array = [array filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"SELF != ''"]];
 
-    NSMutableArray *packageArray = [array mutableCopy];
-    [packageArray removeObject:@"install"];
-    // for (int i = 0; i < packageArray.length; i++) {
-    //     if (packageArray[i] == @"installed") {
-    //         AUPMPackage *package = [[AUPMPackage] alloc] initWithPackageIdentifier:packageArray[i]];
-    //         [installedPackageList addObject:package];
-    //     }
-    // }
+    NSMutableArray *fixedArray = [array mutableCopy];
+    [fixedArray removeObject:@"install"];
+    [fixedArray removeObject:@"deinstall"]; //This still includes the "deinstall"'d packages in the array, need to fix this later
+
+    NSMutableArray *packageArray = [[NSMutableArray alloc] init];
+    for (NSString *packageID in fixedArray) {
+        AUPMPackage *package = [[AUPMPackage alloc] initWthPackageIdentifier:packageID];
+        [packageArray addObject:package];
+    }
+
     HBLogInfo(@"Package Array: %@", packageArray);
 
     return packageArray;

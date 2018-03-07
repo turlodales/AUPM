@@ -9,9 +9,8 @@
 
 	AUPMPackageManager *packageManager = [[AUPMPackageManager alloc] init];
 	_objects = [packageManager installedPackageList];
-	HBLogInfo(@"objects: %@", _objects);
 
-	self.title = @"Packages";
+	self.title = [NSString stringWithFormat:@"Packages: %lu", (unsigned long)[_objects count]];
 }
 
 #pragma mark - Table View Data Source
@@ -27,12 +26,13 @@
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
 	static NSString *identifier = @"InstalledPackageTableViewCell";
 	UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:identifier];
+	AUPMPackage *package = _objects[indexPath.row];
 
 	if (!cell) {
-		cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:identifier] autorelease];
+		cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:identifier];
 	}
 
-	cell.textLabel.text = _objects[indexPath.row];
+	cell.textLabel.text = [package packageName];
 	return cell;
 }
 
