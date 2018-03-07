@@ -26,15 +26,7 @@
     array = [array filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"SELF != ''"]];
 
     NSMutableArray *packageArray = [array mutableCopy];
-    for (int i = 0; i < packageArray.count; i++) {
-        if ([packageArray[i] isEqual:@"deinstall"]) {
-            [packageArray removeObjectAtIndex:i - 1];
-            [packageArray removeObjectAtIndex:i];
-        }
-        else if ([packageArray[i] isEqual:@"install"]) {
-            [packageArray removeObjectAtIndex:i];
-        }
-    }
+    [packageArray removeObject:@"install"];
     // for (int i = 0; i < packageArray.length; i++) {
     //     if (packageArray[i] == @"installed") {
     //         AUPMPackage *package = [[AUPMPackage] alloc] initWithPackageIdentifier:packageArray[i]];
