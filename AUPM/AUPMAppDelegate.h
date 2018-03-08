@@ -1,5 +1,5 @@
-#import "AUPMPackageListViewController.h"
-#import "AUPMRepoListViewController.h"
+#import "Packages/AUPMPackageListViewController.h"
+#import "Repos/AUPMRepoListViewController.h"
 
 @interface AUPMAppDelegate : UIResponder <UITabBarControllerDelegate>
 

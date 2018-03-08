@@ -1,5 +1,3 @@
-#import "NSTask.h"
-
 @interface AUPMPackage : NSObject {
     NSString *packageName;
     NSString *packageID;

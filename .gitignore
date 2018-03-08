@@ -2,4 +2,4 @@
 .atom-build.yml
 obj/
 .theos/
-packages/
+/packages
