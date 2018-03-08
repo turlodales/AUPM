@@ -2,5 +2,5 @@
 #import "AUPMPackage.h"
 
 @interface AUPMPackageManager : NSObject
-- (NSMutableArray *)installedPackageList;
+- (NSArray *)installedPackageList;
 @end

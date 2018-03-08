@@ -1,9 +1,9 @@
-#include "AUPMPackageManager.h"
+#import "AUPMPackageListViewController.h"
+#import "AUPMRepoListViewController.h"
 
-@interface AUPMAppDelegate : UIResponder <UIApplicationDelegate>
+@interface AUPMAppDelegate : UIResponder <UITabBarControllerDelegate>
 
 @property (nonatomic, retain) UIWindow *window;
-@property (nonatomic, retain) UINavigationController *rootViewController;
-@property (nonatomic, retain) AUPMPackageManager *packageManager;
+@property (nonatomic, retain) UITabBarController *tabBarController;
 
 @end

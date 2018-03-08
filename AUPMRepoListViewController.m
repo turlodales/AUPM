@@ -1,16 +1,16 @@
-#import "AUPMPackageListViewController.h"
+#import "AUPMRepoListViewController.h"
 
-@implementation AUPMPackageListViewController {
+@implementation AUPMRepoListViewController {
 	NSMutableArray *_objects;
 }
 
 - (void)loadView {
 	[super loadView];
 
-	AUPMPackageManager *packageManager = [[AUPMPackageManager alloc] init];
-	_objects = [[packageManager installedPackageList] mutableCopy];
+	AUPMRepoManager *repoManager = [[AUPMRepoManager alloc] init];
+	_objects = [[repoManager managedRepoList] mutableCopy];
 
-	self.title = @"Packages";
+	self.title = @"Repos";
 }
 
 #pragma mark - Table View Data Source
@@ -24,18 +24,18 @@
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-	static NSString *identifier = @"InstalledPackageTableViewCell";
+	static NSString *identifier = @"RepoTableViewCell";
 	UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:identifier];
-	AUPMPackage *package = _objects[indexPath.row];
+	AUPMRepo *repo = _objects[indexPath.row];
 
 	if (!cell) {
 		cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:identifier];
 	}
 
-	UIImage *sectionImage = [UIImage imageWithContentsOfFile:[NSString stringWithFormat:@"/Applications/Cydia.app/Sections/%@", [package section]]];
-	cell.imageView.image = sectionImage;
-	cell.textLabel.text = [package packageName];
-	cell.detailTextLabel.text = [NSString stringWithFormat:@"%@ (%@)", [package packageIdentifier], [package version]];
+    cell.textLabel.text = [repo repoName];
+    cell.detailTextLabel.text = [repo repoURL];
+    cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+    cell.imageView.image = [UIImage imageWithData:[repo icon]];
 	return cell;
 }
 
