@@ -32,7 +32,14 @@
 		cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:identifier];
 	}
 
-	cell.textLabel.text = [package packageName];
+	NSString *packageName = [package packageName];
+	HBLogInfo(@"Package Name: %@", packageName);
+	if (packageName != NULL) {
+		cell.textLabel.text = [package packageName];
+	}
+	else {
+		cell.textLabel.text = [package packageIdentifier];
+	}
 	return cell;
 }
 

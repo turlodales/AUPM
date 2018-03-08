@@ -4,7 +4,6 @@
 @implementation AUPMAppDelegate
 
 - (void)applicationDidFinishLaunching:(UIApplication *)application {
-	HBLogInfo(@"AUPM Launching...");
 	_packageManager = [[AUPMPackageManager alloc] init];
 	_window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
 	_rootViewController = [[UINavigationController alloc] initWithRootViewController:[[AUPMPackageListViewController alloc] init]];

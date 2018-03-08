@@ -2,41 +2,33 @@
 
 @implementation AUPMPackageManager
 
-//Parse installed package list from dpkg and create a Package for each one and return an array
-- (NSMutableArray *)installedPackageList {
-    NSTask *task = [[NSTask alloc] init];
-    [task setLaunchPath:@"/Applications/AUPM.app/seadoo"];
-    NSArray *arguments = [[NSArray alloc] initWithObjects: @"dpkg", @"--get-selections", nil];
-    [task setArguments:arguments];
+//Parse installed package list from dpkg and create an AUPMPackage for each one and return an array
+- (NSArray *)installedPackageList {
+    NSString *dbPath = @"/var/lib/dpkg/status";
+    NSError *error;
+    NSString *dbContents = [NSString stringWithContentsOfFile:dbPath encoding:NSUTF8StringEncoding error:&error];
+    NSArray *packageInfoArray = [dbContents componentsSeparatedByString:@"\n\n"];
+    NSMutableArray *installedPackageList = [[NSMutableArray alloc] init];
 
-    NSPipe *out = [NSPipe pipe];
-    [task setStandardOutput:out];
+    for (NSString *package in packageInfoArray) {
+        NSString *trimmedString = [package stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+        NSArray *keyValuePairs = [trimmedString componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]];
 
-    [task launch];
-    [task waitUntilExit];
+        NSMutableDictionary *dict  = [NSMutableDictionary dictionary];
 
-    NSData *data = [[out fileHandleForReading] readDataToEndOfFile];
-    NSString *ouputString = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+        for (NSString *keyValuePair in keyValuePairs) {
+            NSString *trimmedPair = [keyValuePair stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 
-    NSArray *split = [ouputString componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]];
-    split = [split filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"length > 0"]];
-    NSString *res = [split componentsJoinedByString:@" "];
-    NSArray *array = [res componentsSeparatedByCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-    array = [array filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"SELF != ''"]];
+            NSArray *keyValues = [trimmedPair componentsSeparatedByString:@":"];
 
-    NSMutableArray *fixedArray = [array mutableCopy];
-    [fixedArray removeObject:@"install"];
-    [fixedArray removeObject:@"deinstall"]; //This still includes the "deinstall"'d packages in the array, need to fix this later
+            dict[[keyValues.firstObject stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]]] = [keyValues.lastObject stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+        }
 
-    NSMutableArray *packageArray = [[NSMutableArray alloc] init];
-    for (NSString *packageID in fixedArray) {
-        AUPMPackage *package = [[AUPMPackage alloc] initWthPackageIdentifier:packageID];
-        [packageArray addObject:package];
+        AUPMPackage *package = [[AUPMPackage alloc] initWithPackageInformation:dict];
+        [installedPackageList addObject:package];
     }
 
-    HBLogInfo(@"Package Array: %@", packageArray);
-
-    return packageArray;
+    return (NSArray*)installedPackageList;
 }
 
 @end

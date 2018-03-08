@@ -5,9 +5,7 @@
     NSString *packageID;
     NSString *version;
 }
-- (id)initWthPackageIdentifier:(NSString *)identifier;
-+ (NSString *)packageNameFromIdentifier:(NSString *)identifier;
-- (NSDictionary *)parseDpkgInformation:(NSString *)information;
+- (id)initWithPackageInformation:(NSDictionary *)information;
 - (void)setPackageName:(NSString *)name;
 - (void)setPackageIdentifier:(NSString *)identifier;
 - (void)setPackageVersion:(NSString *)version;
