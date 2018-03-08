@@ -27,7 +27,7 @@
             dict[@"Name"] = dict[@"Package"];
         }
 
-        if ([dict[@"Package"] rangeOfString:@"gsc"].location == NSNotFound) {
+        if ([dict[@"Package"] rangeOfString:@"gsc"].location == NSNotFound && [dict[@"Package"] rangeOfString:@"cy+"].location == NSNotFound) {
             AUPMPackage *package = [[AUPMPackage alloc] initWithPackageInformation:dict];
             [installedPackageList addObject:package];
         }
