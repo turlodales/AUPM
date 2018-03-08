@@ -3,21 +3,36 @@
 @implementation AUPMPackage
 
 - (id)initWithPackageInformation:(NSDictionary *)information {
-    packageName = information[@"Name"];
-    packageID = information[@"Package"];
-    version = information[@"Version"];
+    [self setPackageName:information[@"Name"]];
+    [self setPackageIdentifier:information[@"Package"]];
+    [self setPackageVersion:information[@"Version"]];
 
     return self;
 }
 
 - (void)setPackageName:(NSString *)name {
-    packageName = name;
+    if (name != NULL) {
+        packageName = name;
+    }
+    else {
+        packageName = @"";
+    }
 }
 - (void)setPackageIdentifier:(NSString *)identifier {
-    packageID = identifier;
+    if (identifier != NULL) {
+        packageID = identifier;
+    }
+    else {
+        packageID = @"";
+    }
 }
 - (void)setPackageVersion:(NSString *)vers {
-    version = vers;
+    if (vers != NULL) {
+        version = vers;
+    }
+    else {
+        version = @"";
+    }
 }
 
 - (NSString *)packageName {

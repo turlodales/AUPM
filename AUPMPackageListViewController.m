@@ -29,17 +29,11 @@
 	AUPMPackage *package = _objects[indexPath.row];
 
 	if (!cell) {
-		cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:identifier];
+		cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:identifier];
 	}
 
-	NSString *packageName = [package packageName];
-	HBLogInfo(@"Package Name: %@", packageName);
-	if (packageName != NULL) {
-		cell.textLabel.text = [package packageName];
-	}
-	else {
-		cell.textLabel.text = [package packageIdentifier];
-	}
+	cell.textLabel.text = [package packageName];
+	cell.detailTextLabel.text = [NSString stringWithFormat:@"%@ (%@)", [package packageIdentifier], [package version]];
 	return cell;
 }
 

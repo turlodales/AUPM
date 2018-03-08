@@ -22,14 +22,22 @@
 
             dict[[keyValues.firstObject stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]]] = [keyValues.lastObject stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
         }
-        
+
+        if (dict[@"Name"] == NULL) {
+            dict[@"Name"] = dict[@"Package"];
+        }
+
         if ([dict[@"Package"] rangeOfString:@"gsc"].location == NSNotFound) {
             AUPMPackage *package = [[AUPMPackage alloc] initWithPackageInformation:dict];
             [installedPackageList addObject:package];
         }
+
     }
 
-    return (NSArray*)installedPackageList;
+    NSSortDescriptor *sortByPackageName = [NSSortDescriptor sortDescriptorWithKey:@"packageName" ascending:YES];
+    NSArray *sortDescriptors = [NSArray arrayWithObject:sortByPackageName];
+
+    return (NSArray*)[installedPackageList sortedArrayUsingDescriptors:sortDescriptors];
 }
 
 @end
