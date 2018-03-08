@@ -6,6 +6,8 @@
     [self setPackageName:information[@"Name"]];
     [self setPackageIdentifier:information[@"Package"]];
     [self setPackageVersion:information[@"Version"]];
+    [self setSection:information[@"Section"]];
+    [self setDescription:information[@"Description"]];
 
     return self;
 }
@@ -18,6 +20,7 @@
         packageName = @"";
     }
 }
+
 - (void)setPackageIdentifier:(NSString *)identifier {
     if (identifier != NULL) {
         packageID = identifier;
@@ -26,12 +29,31 @@
         packageID = @"";
     }
 }
+
 - (void)setPackageVersion:(NSString *)vers {
     if (vers != NULL) {
         version = vers;
     }
     else {
         version = @"";
+    }
+}
+
+- (void)setSection:(NSString *)sect {
+    if (sect != NULL) {
+        section = sect;
+    }
+    else {
+        section = @"";
+    }
+}
+
+- (void)setDescription:(NSString *)desc {
+    if (desc != NULL) {
+        description = desc;
+    }
+    else {
+        description = @"";
     }
 }
 
@@ -45,6 +67,14 @@
 
 - (NSString *)version {
     return version;
+}
+
+- (NSString *)section {
+    return section;
+}
+
+- (NSString *)description {
+    return description;
 }
 
 @end

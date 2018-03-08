@@ -32,6 +32,8 @@
 		cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:identifier];
 	}
 
+	UIImage *sectionImage = [UIImage imageWithContentsOfFile:[NSString stringWithFormat:@"/Applications/Cydia.app/Sections/%@", [package section]]];
+	cell.imageView.image = sectionImage;
 	cell.textLabel.text = [package packageName];
 	cell.detailTextLabel.text = [NSString stringWithFormat:@"%@ (%@)", [package packageIdentifier], [package version]];
 	return cell;
