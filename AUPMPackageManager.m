@@ -13,8 +13,7 @@
     for (NSString *package in packageInfoArray) {
         NSString *trimmedString = [package stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
         NSArray *keyValuePairs = [trimmedString componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]];
-
-        NSMutableDictionary *dict  = [NSMutableDictionary dictionary];
+        NSMutableDictionary *dict = [NSMutableDictionary dictionary];
 
         for (NSString *keyValuePair in keyValuePairs) {
             NSString *trimmedPair = [keyValuePair stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
@@ -23,9 +22,11 @@
 
             dict[[keyValues.firstObject stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]]] = [keyValues.lastObject stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
         }
-
-        AUPMPackage *package = [[AUPMPackage alloc] initWithPackageInformation:dict];
-        [installedPackageList addObject:package];
+        
+        if ([dict[@"Package"] rangeOfString:@"gsc"].location == NSNotFound) {
+            AUPMPackage *package = [[AUPMPackage alloc] initWithPackageInformation:dict];
+            [installedPackageList addObject:package];
+        }
     }
 
     return (NSArray*)installedPackageList;
