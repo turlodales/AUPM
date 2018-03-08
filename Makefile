@@ -9,5 +9,5 @@ include $(THEOS_MAKE_PATH)/application.mk
 
 after-install::
 	install.exec "killall \"AUPM\"" || true
-SUBPROJECTS += seadoo
+SUBPROJECTS += supersling
 include $(THEOS_MAKE_PATH)/aggregate.mk
