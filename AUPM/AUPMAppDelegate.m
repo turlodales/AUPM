@@ -16,7 +16,6 @@
 	[packageIcon setFinishedSelectedImage:[UIImage imageNamed:@"Packages.png"] withFinishedUnselectedImage:[UIImage imageNamed:@"Packages.png"]];
 	[packagesNavController setTabBarItem:packageIcon];
 
-
 	self.tabBarController = [[UITabBarController alloc] init];
 	self.tabBarController.viewControllers = [NSArray arrayWithObjects:reposNavController, packagesNavController,nil];
 	self.window.rootViewController = self.tabBarController;

@@ -25,7 +25,8 @@
 	[super loadView];
 
 	[self.view setBackgroundColor:[UIColor whiteColor]]; //Fixes a weird animation issue when pushing
-	_webView = [[WKWebView alloc] initWithFrame:self.view.frame];
+	CGFloat height = [[UIApplication sharedApplication] statusBarFrame].size.height + self.navigationController.navigationBar.frame.size.height + self.tabBarController.tabBar.frame.size.height;
+	_webView = [[WKWebView alloc] initWithFrame:CGRectMake(0,0, self.view.frame.size.width, self.view.frame.size.height - height)];
     [_webView setNavigationDelegate:self];
     [_webView loadRequest:[[NSURLRequest alloc] initWithURL:[_package depictionURL]]];
 	_webView.allowsBackForwardNavigationGestures = true;
