@@ -1,9 +1,7 @@
 #import "AUPMRepoManager.h"
 #include "dpkgver.c"
 
-@implementation AUPMRepoManager {
-    NSMutableDictionary *_candidateVersionDict;
-}
+@implementation AUPMRepoManager
 
 //Parse repo list from apt and convert to an AUPMRepo file for each one and return an array of them
 - (NSArray *)managedRepoList {
@@ -30,16 +28,17 @@
             }
 
             NSString *baseFileName = [path stringByReplacingOccurrencesOfString:@"_Release" withString:@""];
-            dict[@"URL"] = baseFileName;
+            dict[@"baseFileName"] = baseFileName;
+            //apt.saurik.com_dists_ios_1349.70
+            NSString *repoURL = baseFileName;
+            repoURL = [repoURL stringByReplacingOccurrencesOfString:@"_" withString:@"/"];
+            //repoURL = [repoURL substringToIndex:[repoURL length] - 1];
+            repoURL = [NSString stringWithFormat:@"http://%@", repoURL];
+            dict[@"URL"] = repoURL;
 
-            // NSArray *urlItems = [path componentsSeparatedByString:@"_"];
-            // NSString *baseUrlString = urlItems[0];
-            // NSString *url = [NSString stringWithFormat:@"http://www.%@/", baseUrlString];
-            // dict[@"URL"] = url;
-            //
-            // NSString *repoIconURL = [NSString stringWithFormat:@"%@CydiaIcon.png", url];
-            // HBLogInfo(@"Repo Icon URL: %@", repoIconURL);
-            // dict[@"Icon"] = [NSData dataWithContentsOfURL:[NSURL URLWithString:repoIconURL]];
+            NSString *repoIconURL = [NSString stringWithFormat:@"%@/CydiaIcon.png", repoURL];
+            HBLogInfo(@"Repo Icon URL: %@", repoIconURL);
+            dict[@"Icon"] = [NSData dataWithContentsOfURL:[NSURL URLWithString:repoIconURL]];
 
             AUPMRepo *repo = [[AUPMRepo alloc] initWithRepoInformation:dict];
             [managedRepoList addObject:repo];
@@ -79,7 +78,7 @@
 }
 
 - (NSArray *)packageListForRepo:(AUPMRepo *)repo {
-    NSString *cachedPackagesFile = [NSString stringWithFormat:@"/var/lib/apt/lists/%@_Packages", [repo repoURL]];
+    NSString *cachedPackagesFile = [NSString stringWithFormat:@"/var/lib/apt/lists/%@_Packages", [repo repoBaseFileName]];
     NSMutableArray *packageListForRepo = [[NSMutableArray alloc] init];
     NSString *content = [NSString stringWithContentsOfFile:cachedPackagesFile encoding:NSUTF8StringEncoding error:NULL];
 

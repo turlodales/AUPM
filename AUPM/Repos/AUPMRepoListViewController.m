@@ -35,7 +35,7 @@
     cell.textLabel.text = [repo repoName];
     cell.detailTextLabel.text = [repo repoURL];
     cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
-    //cell.imageView.image = [UIImage imageWithData:[repo icon]];
+    cell.imageView.image = [UIImage imageWithData:[repo icon]];
 	return cell;
 }
 
@@ -44,7 +44,7 @@
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
 	[tableView deselectRowAtIndexPath:indexPath animated:YES];
 	AUPMRepo *repo = _objects[indexPath.row];
-	AUPMRepoPackageListViewController *packageListVC = [[AUPMRepoPackageListViewController alloc] initWithRepo:repo];     
+	AUPMRepoPackageListViewController *packageListVC = [[AUPMRepoPackageListViewController alloc] initWithRepo:repo];
     [self.navigationController pushViewController:packageListVC animated:YES];
 }
 

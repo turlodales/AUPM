@@ -6,8 +6,9 @@
 
     [self setIcon:information[@"Icon"]];
     [self setRepoName:information[@"Origin"]];
-    [self setRepoURL:information[@"URL"]];
+    [self setRepoBaseFileName:information[@"baseFileName"]];
     [self setDescription:information[@"Description"]];
+    [self setRepoURL:information[@"URL"]];
 
     return self;
 }
@@ -24,15 +25,21 @@
     }
 }
 
-- (void)setRepoURL:(NSString *)url {
-    if (url != NULL) {
-        repoURL = url;
+- (void)setRepoBaseFileName:(NSString *)filename {
+    if (filename != NULL) {
+        repoBaseFileName = filename;
     }
 }
 
 - (void)setDescription:(NSString *)desc {
     if (desc != NULL) {
         description = desc;
+    }
+}
+
+- (void)setRepoURL:(NSString *)url {
+    if (url != NULL) {
+        repoURL = url;
     }
 }
 
@@ -44,11 +51,14 @@
     return repoName;
 }
 
-- (NSString *)repoURL {
-    return repoURL;
+- (NSString *)repoBaseFileName {
+    return repoBaseFileName;
 }
 
 - (NSString *)description {
     return description;
+}
+- (NSString *)repoURL {
+    return repoURL;
 }
 @end
