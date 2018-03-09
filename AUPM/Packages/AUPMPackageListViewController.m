@@ -32,7 +32,7 @@
 		cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:identifier];
 	}
 
-	UIImage *sectionImage = [UIImage imageWithContentsOfFile:[NSString stringWithFormat:@"/Applications/Cydia.app/Sections/%@", [package section]]];
+	UIImage *sectionImage = [UIImage imageWithContentsOfFile:[NSString stringWithFormat:@"/Applications/Cydia.app/Sections/%@.png", [[package section] stringByReplacingOccurrencesOfString:@" " withString:@"_"]]];
 	cell.imageView.image = sectionImage;
 	cell.textLabel.text = [package packageName];
 	cell.detailTextLabel.text = [NSString stringWithFormat:@"%@ (%@)", [package packageIdentifier], [package version]];
@@ -43,6 +43,9 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
 	[tableView deselectRowAtIndexPath:indexPath animated:YES];
+	AUPMPackage *package = _objects[indexPath.row];
+	AUPMPackageViewController *packageVC = [[AUPMPackageViewController alloc] initWithPackage:package];
+    [self.navigationController pushViewController:packageVC animated:YES];
 }
 
 @end

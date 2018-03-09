@@ -4,6 +4,7 @@
     NSString *version;
     NSString *section;
     NSString *description;
+    NSURL *depictionURL;
 }
 - (id)initWithPackageInformation:(NSDictionary *)information;
 - (void)setPackageName:(NSString *)name;
@@ -11,9 +12,11 @@
 - (void)setPackageVersion:(NSString *)version;
 - (void)setSection:(NSString *)section;
 - (void)setDescription:(NSString *)description;
+- (void)setDepictionURL:(NSURL *)url;
 - (NSString *)packageName;
 - (NSString *)packageIdentifier;
 - (NSString *)version;
 - (NSString *)section;
 - (NSString *)description;
+- (NSURL *)depictionURL;
 @end

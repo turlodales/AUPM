@@ -8,6 +8,7 @@
     [self setPackageVersion:information[@"Version"]];
     [self setSection:information[@"Section"]];
     [self setDescription:information[@"Description"]];
+    [self setDepictionURL:[NSURL URLWithString:[NSString stringWithFormat:@"http:%@", information[@"Depiction"]]]];
 
     return self;
 }
@@ -57,6 +58,12 @@
     }
 }
 
+- (void)setDepictionURL:(NSURL *)url {
+    if (url != NULL) {
+        depictionURL = url;
+    }
+}
+
 - (NSString *)packageName {
     return packageName;
 }
@@ -75,6 +82,10 @@
 
 - (NSString *)description {
     return description;
+}
+
+- (NSURL *)depictionURL {
+    return depictionURL;
 }
 
 @end

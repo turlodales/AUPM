@@ -1,4 +1,5 @@
 #import "../Packages/AUPMPackage.h"
+#import "../Packages/AUPMPackageViewController.h"
 #import "AUPMRepoManager.h"
 
 @interface AUPMRepoPackageListViewController : UITableViewController

@@ -48,6 +48,9 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
 	[tableView deselectRowAtIndexPath:indexPath animated:YES];
+	AUPMPackage *package = _objects[indexPath.row];
+	AUPMPackageViewController *packageVC = [[AUPMPackageViewController alloc] initWithPackage:package];
+    [self.navigationController pushViewController:packageVC animated:YES];
 }
 
 @end
