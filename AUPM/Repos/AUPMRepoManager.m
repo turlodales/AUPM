@@ -1,6 +1,9 @@
 #import "AUPMRepoManager.h"
+#include "dpkgver.c"
 
-@implementation AUPMRepoManager
+@implementation AUPMRepoManager {
+    NSMutableDictionary *_candidateVersionDict;
+}
 
 //Parse repo list from apt and convert to an AUPMRepo file for each one and return an array of them
 - (NSArray *)managedRepoList {
@@ -49,6 +52,32 @@
     return (NSArray*)[managedRepoList sortedArrayUsingDescriptors:sortDescriptors];
 }
 
+- (NSArray *)cleanUpDuplicatePackages:(NSArray *)packageList {
+    NSMutableDictionary *packageVersionDict = [[NSMutableDictionary alloc] init];
+    NSMutableArray *cleanedPackageList = [packageList mutableCopy];
+
+    for (AUPMPackage *package in packageList) {
+        HBLogInfo(@"Comparing %@", [package packageIdentifier]);
+        if (packageVersionDict[[package packageIdentifier]] == NULL) {
+            packageVersionDict[[package packageIdentifier]] = package;
+        }
+
+        NSString *arrayVersion = [(AUPMPackage *)packageVersionDict[[package packageIdentifier]] version];
+        NSString *packageVersion = [package version];
+        int result = verrevcmp([packageVersion UTF8String], [arrayVersion UTF8String]);
+
+        if (result > 0) {
+            [cleanedPackageList removeObject:packageVersionDict[[package packageIdentifier]]];
+            packageVersionDict[[package packageIdentifier]] = package;
+        }
+        else if (result < 0) {
+            [cleanedPackageList removeObject:package];
+        }
+    }
+
+    return (NSArray *)cleanedPackageList;
+}
+
 - (NSArray *)packageListForRepo:(AUPMRepo *)repo {
     NSString *cachedPackagesFile = [NSString stringWithFormat:@"/var/lib/apt/lists/%@_Packages", [repo repoURL]];
     NSMutableArray *packageListForRepo = [[NSMutableArray alloc] init];
@@ -77,13 +106,12 @@
             AUPMPackage *package = [[AUPMPackage alloc] initWithPackageInformation:dict];
             [packageListForRepo addObject:package];
         }
-
     }
 
     NSSortDescriptor *sortByPackageName = [NSSortDescriptor sortDescriptorWithKey:@"packageName" ascending:YES];
     NSArray *sortDescriptors = [NSArray arrayWithObject:sortByPackageName];
 
-    return (NSArray*)[packageListForRepo sortedArrayUsingDescriptors:sortDescriptors];
+    return [self cleanUpDuplicatePackages:[packageListForRepo sortedArrayUsingDescriptors:sortDescriptors]];
 }
 
 @end
