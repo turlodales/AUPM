@@ -1,16 +1,21 @@
-#import "AUPMRepoListViewController.h"
+#import "AUPMRepoPackageListViewController.h"
 
-@implementation AUPMRepoListViewController {
+@implementation AUPMRepoPackageListViewController {
 	NSMutableArray *_objects;
+	AUPMRepo *_repo;
+}
+
+- (id)initWithRepo:(AUPMRepo *)repo {
+	_repo = repo;
+
+	return self;
 }
 
 - (void)loadView {
 	[super loadView];
 
 	AUPMRepoManager *repoManager = [[AUPMRepoManager alloc] init];
-	_objects = [[repoManager managedRepoList] mutableCopy];
-
-	self.title = @"Repos";
+	_objects = [[repoManager packageListForRepo:_repo] mutableCopy];
 }
 
 #pragma mark - Table View Data Source
@@ -24,18 +29,18 @@
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-	static NSString *identifier = @"RepoTableViewCell";
+	static NSString *identifier = @"RepoPackageCell";
 	UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:identifier];
-	AUPMRepo *repo = _objects[indexPath.row];
+	AUPMPackage *package = _objects[indexPath.row];
 
 	if (!cell) {
 		cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:identifier];
 	}
 
-    cell.textLabel.text = [repo repoName];
-    cell.detailTextLabel.text = [repo repoURL];
-    cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
-    //cell.imageView.image = [UIImage imageWithData:[repo icon]];
+	UIImage *sectionImage = [UIImage imageWithContentsOfFile:[NSString stringWithFormat:@"/Applications/Cydia.app/Sections/%@", [package section]]];
+	cell.imageView.image = sectionImage;
+	cell.textLabel.text = [package packageName];
+	cell.detailTextLabel.text = [NSString stringWithFormat:@"%@ (%@)", [package packageIdentifier], [package version]];
 	return cell;
 }
 
@@ -43,9 +48,6 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
 	[tableView deselectRowAtIndexPath:indexPath animated:YES];
-	AUPMRepo *repo = _objects[indexPath.row];
-	AUPMRepoPackageListViewController *packageListVC = [[AUPMRepoPackageListViewController alloc] initWithRepo:repo];     
-    [self.navigationController pushViewController:packageListVC animated:YES];
 }
 
 @end
