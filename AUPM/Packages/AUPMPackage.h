@@ -1,4 +1,5 @@
 #import "../NSTask.h"
+#import "AUPMConsoleViewController.h"
 
 @interface AUPMPackage : NSObject {
     NSString *packageName;

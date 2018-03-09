@@ -15,6 +15,12 @@
 	return self;
 }
 
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+
+	[self configureNavButton];
+}
+
 - (void)loadView {
 	[super loadView];
 
@@ -27,16 +33,40 @@
     [_webView addSubview:_progressBar];
 	[self.view addSubview:_webView];
 
+	self.title = [_package packageName];
+}
+
+- (void)configureNavButton {
 	if ([_package isInstalled]) {
-		UIBarButtonItem *removeButton = [[UIBarButtonItem alloc] initWithTitle:@"Remove" style:UIBarButtonItemStylePlain target:self action:@selector(removePackage:)];
+		UIBarButtonItem *removeButton = [[UIBarButtonItem alloc] initWithTitle:@"Remove" style:UIBarButtonItemStylePlain target:self action:@selector(removePackage)];
   		self.navigationItem.rightBarButtonItem = removeButton;
 	}
 	else {
-		UIBarButtonItem *installButton = [[UIBarButtonItem alloc] initWithTitle:@"Install" style:UIBarButtonItemStylePlain target:self action:@selector(installPackage:)];
+		UIBarButtonItem *installButton = [[UIBarButtonItem alloc] initWithTitle:@"Install" style:UIBarButtonItemStylePlain target:self action:@selector(installPackage)];
 		self.navigationItem.rightBarButtonItem = installButton;
 	}
+}
 
-	self.title = [_package packageName];
+- (void)installPackage {
+	NSTask *task = [[NSTask alloc] init];
+    [task setLaunchPath:@"/Applications/AUPM.app/supersling"];
+    NSArray *arguments = [[NSArray alloc] initWithObjects: @"apt-get", @"install", [_package packageIdentifier], @"-y", @"--force-yes", nil];
+    [task setArguments:arguments];
+
+	AUPMConsoleViewController *console = [[AUPMConsoleViewController alloc] initWithTask:task];
+	UINavigationController *navController = [[UINavigationController alloc] initWithRootViewController:console];
+    [self presentViewController:navController animated:true completion:nil];
+}
+
+- (void)removePackage {
+    NSTask *task = [[NSTask alloc] init];
+    [task setLaunchPath:@"/Applications/AUPM.app/supersling"];
+    NSArray *arguments = [[NSArray alloc] initWithObjects: @"apt-get", @"remove", [_package packageIdentifier], @"-y", @"--force-yes", nil];
+    [task setArguments:arguments];
+
+	AUPMConsoleViewController *console = [[AUPMConsoleViewController alloc] initWithTask:task];
+	UINavigationController *navController = [[UINavigationController alloc] initWithRootViewController:console];
+    [self presentViewController:navController animated:true completion:nil];
 }
 
 - (void)webView:(WKWebView *)webView didStartProvisionalNavigation:(WKNavigation *)navigation
