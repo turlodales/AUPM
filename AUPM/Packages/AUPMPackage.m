@@ -13,6 +13,27 @@
     return self;
 }
 
+- (BOOL)isInstalled {
+    NSTask *task = [[NSTask alloc] init];
+    [task setLaunchPath:@"/Applications/AUPM.app/supersling"];
+    NSArray *arguments = [[NSArray alloc] initWithObjects: @"dpkg", @"-l", nil];
+    [task setArguments:arguments];
+
+    NSPipe *out = [NSPipe pipe];
+    [task setStandardOutput:out];
+
+    [task launch];
+    [task waitUntilExit];
+
+    NSData *data = [[out fileHandleForReading] readDataToEndOfFile];
+    NSString *outputString = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+
+    if ([outputString rangeOfString:packageID].location != NSNotFound) {
+        return true;
+    }
+    return false;
+}
+
 - (void)setPackageName:(NSString *)name {
     if (name != NULL) {
         packageName = name;

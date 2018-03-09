@@ -27,6 +27,15 @@
     [_webView addSubview:_progressBar];
 	[self.view addSubview:_webView];
 
+	if ([_package isInstalled]) {
+		UIBarButtonItem *removeButton = [[UIBarButtonItem alloc] initWithTitle:@"Remove" style:UIBarButtonItemStylePlain target:self action:@selector(removePackage:)];
+  		self.navigationItem.rightBarButtonItem = removeButton;
+	}
+	else {
+		UIBarButtonItem *installButton = [[UIBarButtonItem alloc] initWithTitle:@"Install" style:UIBarButtonItemStylePlain target:self action:@selector(installPackage:)];
+		self.navigationItem.rightBarButtonItem = installButton;
+	}
+
 	self.title = [_package packageName];
 }
 

@@ -1,3 +1,5 @@
+#import "../NSTask.h"
+
 @interface AUPMPackage : NSObject {
     NSString *packageName;
     NSString *packageID;
@@ -7,6 +9,7 @@
     NSURL *depictionURL;
 }
 - (id)initWithPackageInformation:(NSDictionary *)information;
+- (BOOL)isInstalled;
 - (void)setPackageName:(NSString *)name;
 - (void)setPackageIdentifier:(NSString *)identifier;
 - (void)setPackageVersion:(NSString *)version;
