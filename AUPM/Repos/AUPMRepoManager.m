@@ -29,10 +29,8 @@
 
             NSString *baseFileName = [path stringByReplacingOccurrencesOfString:@"_Release" withString:@""];
             dict[@"baseFileName"] = baseFileName;
-            //apt.saurik.com_dists_ios_1349.70
             NSString *repoURL = baseFileName;
             repoURL = [repoURL stringByReplacingOccurrencesOfString:@"_" withString:@"/"];
-            //repoURL = [repoURL substringToIndex:[repoURL length] - 1];
             repoURL = [NSString stringWithFormat:@"http://%@", repoURL];
             dict[@"URL"] = repoURL;
 
@@ -56,7 +54,6 @@
     NSMutableArray *cleanedPackageList = [packageList mutableCopy];
 
     for (AUPMPackage *package in packageList) {
-        HBLogInfo(@"Comparing %@", [package packageIdentifier]);
         if (packageVersionDict[[package packageIdentifier]] == NULL) {
             packageVersionDict[[package packageIdentifier]] = package;
         }
@@ -78,9 +75,19 @@
 }
 
 - (NSArray *)packageListForRepo:(AUPMRepo *)repo {
+    HBLogInfo(@"Package List For Repo: %@", [repo repoName]);
     NSString *cachedPackagesFile = [NSString stringWithFormat:@"/var/lib/apt/lists/%@_Packages", [repo repoBaseFileName]];
+    if (![[NSFileManager defaultManager] fileExistsAtPath:cachedPackagesFile]) {
+        cachedPackagesFile = [NSString stringWithFormat:@"/var/lib/apt/lists/%@_main_binary-iphoneos-arm_Packages", [repo repoBaseFileName]]; //Do some funky package file with the default repos
+        HBLogInfo(@"Default Repo Packages File: %@", cachedPackagesFile);
+    }
     NSMutableArray *packageListForRepo = [[NSMutableArray alloc] init];
-    NSString *content = [NSString stringWithContentsOfFile:cachedPackagesFile encoding:NSUTF8StringEncoding error:NULL];
+    NSError *error;
+    NSString *content = [NSString stringWithContentsOfFile:cachedPackagesFile encoding:NSMacOSRomanStringEncoding error:&error];
+
+    if (error != NULL) {
+        HBLogError(@"Error while reading packages: %@", error);
+    }
 
     NSArray *packageInfoArray = [content componentsSeparatedByString:@"\n\n"];
 
@@ -110,6 +117,7 @@
     NSSortDescriptor *sortByPackageName = [NSSortDescriptor sortDescriptorWithKey:@"packageName" ascending:YES];
     NSArray *sortDescriptors = [NSArray arrayWithObject:sortByPackageName];
 
+    HBLogInfo(@"Done Reading Repo");
     return [self cleanUpDuplicatePackages:[packageListForRepo sortedArrayUsingDescriptors:sortDescriptors]];
 }
 
