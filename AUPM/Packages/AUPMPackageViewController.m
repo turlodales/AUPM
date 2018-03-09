@@ -21,8 +21,6 @@
 	[self.view setBackgroundColor:[UIColor whiteColor]]; //Fixes a weird animation issue when pushing
 	_webView = [[WKWebView alloc] initWithFrame:self.view.frame];
     [_webView setNavigationDelegate:self];
-	HBLogInfo(@"Depiction URL: %@", [_package depictionURL]);
-	HBLogInfo(@"Web View: %@", _webView);
     [_webView loadRequest:[[NSURLRequest alloc] initWithURL:[_package depictionURL]]];
 	_webView.allowsBackForwardNavigationGestures = true;
     _progressBar = [[UIProgressView alloc] initWithFrame:CGRectMake(0, 0, [[UIScreen mainScreen] bounds].size.width, 9)];
