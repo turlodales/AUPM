@@ -3,6 +3,7 @@
 #import "NSTask.h"
 #import "Repos/AUPMRepoManager.h"
 #import "Packages/AUPMPackage.h"
+#import "AUPMAppDelegate.h"
 
 @interface AUPMDatabaseManager : NSObject
 @property (nonatomic, strong) NSMutableArray *arrColumnNames;
@@ -10,5 +11,5 @@
 @property (nonatomic) long long lastInsertedRowID;
 
 - (id)initWithDatabaseFilename:(NSString *)filename;
-- (void)firstLoadPopulation;
+- (void)firstLoadPopulation:(void (^)(BOOL success))completion;
 @end

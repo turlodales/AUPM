@@ -23,7 +23,7 @@
 }
 
 //Runs apt-get update and cahces all information from apt into a database
-- (void)firstLoadPopulation {
+- (void)firstLoadPopulation:(void (^)(BOOL success))completion {
     HBLogInfo(@"Beginning first load preparation");
     NSString *databasePath = [self.documentsDirectory stringByAppendingPathComponent:self.databaseFilename];
 
@@ -114,8 +114,7 @@
             });
         }
         dispatch_group_wait(group, DISPATCH_TIME_FOREVER);
-        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"dbSetupComplete"];
-        [[NSUserDefaults standardUserDefaults] synchronize];
+        completion(true);
 }
 
 - (void)copyDatabaseIntoDocumentsDirectory {

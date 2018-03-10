@@ -24,7 +24,25 @@
     [super viewDidAppear:animated];
 
     AUPMDatabaseManager *databaseManager = [[AUPMDatabaseManager alloc] initWithDatabaseFilename:@"aupmpackagedb.sql"];
-    [databaseManager firstLoadPopulation];
+    [databaseManager firstLoadPopulation:^(BOOL success) {
+        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"dbSetupComplete"];
+        [[NSUserDefaults standardUserDefaults] synchronize];
+
+        UITabBarController *tabController = [[UITabBarController alloc] init];
+
+        UINavigationController *reposNavController = [[UINavigationController alloc] initWithRootViewController:[[AUPMRepoListViewController alloc] init]];
+		UITabBarItem *repoIcon = [[UITabBarItem alloc] initWithTitle:@"Repo" image:[UIImage imageNamed:@"Repo.png"] tag:0];
+		[repoIcon setFinishedSelectedImage:[UIImage imageNamed:@"Repo.png"] withFinishedUnselectedImage:[UIImage imageNamed:@"Repo.png"]];
+		[reposNavController setTabBarItem:repoIcon];
+
+		UINavigationController *packagesNavController = [[UINavigationController alloc] initWithRootViewController:[[AUPMPackageListViewController alloc] init]];
+		UITabBarItem *packageIcon = [[UITabBarItem alloc] initWithTitle:@"Packages" image:[UIImage imageNamed:@"Packages.png"] tag:0];
+		[packageIcon setFinishedSelectedImage:[UIImage imageNamed:@"Packages.png"] withFinishedUnselectedImage:[UIImage imageNamed:@"Packages.png"]];
+		[packagesNavController setTabBarItem:packageIcon];
+
+		tabController.viewControllers = [NSArray arrayWithObjects:reposNavController, packagesNavController,nil];
+		[[UIApplication sharedApplication] keyWindow].rootViewController = self.tabBarController;
+    }];
 }
 
 @end
