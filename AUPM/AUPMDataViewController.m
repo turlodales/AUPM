@@ -12,6 +12,11 @@
     [activityIndicator startAnimating];
     activityIndicator.center = self.view.center;
 
+    UILabel *warningLabel = [[UILabel alloc] init];
+    warningLabel.text = @"This may take an absurdly long time...";
+    [warningLabel sizeToFit];
+    warningLabel.center = CGPointMake(self.view.center.x, self.view.center.y + 30);
+    [self.view addSubview:warningLabel];
 
 }
 
