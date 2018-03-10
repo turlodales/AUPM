@@ -34,9 +34,9 @@
             repoURL = [NSString stringWithFormat:@"http://%@", repoURL];
             dict[@"URL"] = repoURL;
 
-            NSString *repoIconURL = [NSString stringWithFormat:@"%@/CydiaIcon.png", repoURL];
-            HBLogInfo(@"Repo Icon URL: %@", repoIconURL);
-            dict[@"Icon"] = [NSData dataWithContentsOfURL:[NSURL URLWithString:repoIconURL]];
+            // NSString *repoIconURL = [NSString stringWithFormat:@"%@/CydiaIcon.png", repoURL];
+            // HBLogInfo(@"Repo Icon URL: %@", repoIconURL);
+            // dict[@"Icon"] = [NSData dataWithContentsOfURL:[NSURL URLWithString:repoIconURL]];
 
             AUPMRepo *repo = [[AUPMRepo alloc] initWithRepoInformation:dict];
             [managedRepoList addObject:repo];
