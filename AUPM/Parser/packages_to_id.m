@@ -1,5 +1,5 @@
 #import <Foundation/Foundation.h>
-#import <cJSON.h>
+#import "cJSON.h"
 
 
 cJSON * jjjj_apt_list_parse(FILE *f, int *errlineno, int flags);
@@ -20,7 +20,7 @@ id json_to_id(cJSON *json)
         return [NSNumber numberWithDouble:json->valuedouble];
     case cJSON_String:
         return [NSString stringWithUTF8String:json->valuestring];
-    case cJSON_Array:;
+    case cJSON_Array: {
         NSMutableArray *arr = NSMutableArray.array;
         child = json->child;
         while(child) {
@@ -31,7 +31,8 @@ id json_to_id(cJSON *json)
             child = child->next;
         }
         return arr;
-    case cJSON_Object:;
+    }
+    case cJSON_Object: {
         NSMutableDictionary *dict = NSMutableDictionary.dictionary;
         child = json->child;
         while(child) {
@@ -43,6 +44,7 @@ id json_to_id(cJSON *json)
             child = child->next;
         }
         return dict;
+    }
     default:
         return nil;
     }

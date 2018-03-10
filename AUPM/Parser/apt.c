@@ -1,6 +1,7 @@
 #include "cJSON.h"
 #include <stdbool.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -67,7 +68,7 @@ cJSON * jjjj_apt_list_parse(FILE *f, int *errlineno, int flags)
 
     bool past_colon = false;
     bool reading = true;
-    bool entry_is_dud = false;
+    //bool entry_is_dud = false;
     while(reading) {
         size_t read = fread(buf, 1, bufcap, f);
         if(read < bufcap) {

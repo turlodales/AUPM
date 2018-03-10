@@ -25,7 +25,6 @@
 //Runs apt-get update and cahces all information from apt into a database
 - (void)firstLoadPopulation {
     HBLogInfo(@"Beginning first load preparation");
-    sqlite3 *sqlite3Database;
     NSString *databasePath = [self.documentsDirectory stringByAppendingPathComponent:self.databaseFilename];
 
     if (self.arrResults != nil) {
@@ -39,12 +38,8 @@
         self.arrColumnNames = nil;
     }
     self.arrColumnNames = [[NSMutableArray alloc] init];
-
-    //Open the database
-    BOOL openDatabaseResult = sqlite3_open([databasePath UTF8String], &sqlite3Database);
-    if (openDatabaseResult == SQLITE_OK) {
         //Since this should only be called on the first load, lets nuke the database just in case... (I'll change this later)
-        [self purgeRecords:sqlite3Database];
+        [self purgeRecords:databasePath];
 
         AUPMRepoManager *repoManager = [[AUPMRepoManager alloc] init];
 
@@ -60,24 +55,27 @@
         sqlite3_config(SQLITE_CONFIG_SERIALIZED);
         NSArray *repoArray = [repoManager managedRepoList];
         dispatch_group_t group = dispatch_group_create();
+        //dispatch_queue_t queue = dispatch_queue_create("com.xtm3x.aupm.database", DISPATCH_QUEUE_SERIAL);
         for (AUPMRepo *repo in repoArray) {
             dispatch_group_async(group, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^ {
-                sqlite3_stmt *statement;
+                sqlite3 *sqlite3Database;
+                sqlite3_open([databasePath UTF8String], &sqlite3Database);
+                sqlite3_stmt *repoStatement;
                 NSString *repoQuery = @"insert into repos(repoName, repoBaseFileName, description, repoURL, icon) values(?,?,?,?,?)";
 
                 //Populate repo database
-                if (sqlite3_prepare_v2(sqlite3Database, [repoQuery UTF8String], -1, &statement, nil) == SQLITE_OK) {
-                    sqlite3_bind_text(statement, 1, [[repo repoName] UTF8String], -1, SQLITE_TRANSIENT);
-                    sqlite3_bind_text(statement, 2, [[repo repoBaseFileName] UTF8String], -1, SQLITE_TRANSIENT);
-                    sqlite3_bind_text(statement, 3, [[repo description] UTF8String], -1, SQLITE_TRANSIENT);
-                    sqlite3_bind_text(statement, 4, [[repo repoURL] UTF8String], -1, SQLITE_TRANSIENT);
-                    sqlite3_bind_blob(statement, 5, (__bridge const void *)[repo icon], -1, SQLITE_TRANSIENT);
-                    sqlite3_step(statement);
+                if (sqlite3_prepare_v2(sqlite3Database, [repoQuery UTF8String], -1, &repoStatement, nil) == SQLITE_OK) {
+                    sqlite3_bind_text(repoStatement, 1, [[repo repoName] UTF8String], -1, SQLITE_TRANSIENT);
+                    sqlite3_bind_text(repoStatement, 2, [[repo repoBaseFileName] UTF8String], -1, SQLITE_TRANSIENT);
+                    sqlite3_bind_text(repoStatement, 3, [[repo description] UTF8String], -1, SQLITE_TRANSIENT);
+                    sqlite3_bind_text(repoStatement, 4, [[repo repoURL] UTF8String], -1, SQLITE_TRANSIENT);
+                    sqlite3_bind_blob(repoStatement, 5, (__bridge const void *)[repo icon], -1, SQLITE_TRANSIENT);
+                    sqlite3_step(repoStatement);
                 }
                 else {
                     HBLogError(@"%s", sqlite3_errmsg(sqlite3Database));
                 }
-                sqlite3_finalize(statement);
+                sqlite3_finalize(repoStatement);
 
                 long long lastRowId = sqlite3_last_insert_rowid(sqlite3Database);
 
@@ -85,28 +83,32 @@
                 HBLogInfo(@"Started to parse packages for repo %@", [repo repoName]);
                 NSString *packageQuery = @"insert into packages(repoID, packageName, packageIdentifier, version, section, description, depictionURL) values(?,?,?,?,?,?,?)";
                 sqlite3_exec(sqlite3Database, "BEGIN TRANSACTION", NULL, NULL, NULL);
-                sqlite3_prepare_v2(sqlite3Database, [packageQuery UTF8String], -1, &statement, nil);
-                for (AUPMPackage *package in packagesArray) {
-                    //Populate packages database with packages from repo
-                    sqlite3_bind_int(statement, 1, (int)lastRowId);
-                    sqlite3_bind_text(statement, 2, [[package packageName] UTF8String], -1, SQLITE_TRANSIENT);
-                    sqlite3_bind_text(statement, 3, [[package packageIdentifier] UTF8String], -1, SQLITE_TRANSIENT);
-                    sqlite3_bind_text(statement, 4, [[package version] UTF8String], -1, SQLITE_TRANSIENT);
-                    sqlite3_bind_text(statement, 5, [[package section] UTF8String], -1, SQLITE_TRANSIENT);
-                    sqlite3_bind_text(statement, 6, [[package description] UTF8String], -1, SQLITE_TRANSIENT);
-                    sqlite3_bind_text(statement, 7, [[package depictionURL].absoluteString UTF8String], -1, SQLITE_TRANSIENT);
-                    sqlite3_step(statement);
-                    sqlite3_reset(statement);
-                    sqlite3_clear_bindings(statement);
+                sqlite3_stmt *packageStatement;
+                if (sqlite3_prepare_v2(sqlite3Database, [packageQuery UTF8String], -1, &packageStatement, nil) == SQLITE_OK) {
+                    for (AUPMPackage *package in packagesArray) {
+                        //Populate packages database with packages from repo
+                        sqlite3_bind_int(packageStatement, 1, (int)lastRowId);
+                        sqlite3_bind_text(packageStatement, 2, [[package packageName] UTF8String], -1, SQLITE_TRANSIENT);
+                        sqlite3_bind_text(packageStatement, 3, [[package packageIdentifier] UTF8String], -1, SQLITE_TRANSIENT);
+                        sqlite3_bind_text(packageStatement, 4, [[package version] UTF8String], -1, SQLITE_TRANSIENT);
+                        sqlite3_bind_text(packageStatement, 5, [[package section] UTF8String], -1, SQLITE_TRANSIENT);
+                        sqlite3_bind_text(packageStatement, 6, [[package description] UTF8String], -1, SQLITE_TRANSIENT);
+                        sqlite3_bind_text(packageStatement, 7, [[package depictionURL].absoluteString UTF8String], -1, SQLITE_TRANSIENT);
+                        sqlite3_step(packageStatement);
+                        sqlite3_reset(packageStatement);
+                        sqlite3_clear_bindings(packageStatement);
+                    }
+                    sqlite3_exec(sqlite3Database, "COMMIT TRANSACTION", NULL, NULL, NULL);
+                    HBLogInfo(@"Finished packages for repo %@", [repo repoName]);
                 }
-                sqlite3_exec(sqlite3Database, "COMMIT TRANSACTION", NULL, NULL, NULL);
-                sqlite3_finalize(statement);
-                HBLogInfo(@"Finished packages for repo %@", [repo repoName]);
+                else {
+                    HBLogError(@"%s", sqlite3_errmsg(sqlite3Database));
+                }
+                sqlite3_finalize(packageStatement);
             });
         }
         dispatch_group_wait(group, DISPATCH_TIME_FOREVER);
         HBLogInfo(@"First load preparation complete");
-    }
 }
 
 - (void)copyDatabaseIntoDocumentsDirectory{
@@ -122,9 +124,12 @@
     }
 }
 
-- (void)purgeRecords:(sqlite3 *)database {
+- (void)purgeRecords:(NSString *)path {
+    sqlite3 *database;
+    sqlite3_open([path UTF8String], &database);
     sqlite3_exec(database, "DELETE FROM REPOS", NULL, NULL, NULL);
     sqlite3_exec(database, "DELETE FROM PACKAGES", NULL, NULL, NULL);
+    sqlite3_close(database);
 }
 
 @end
