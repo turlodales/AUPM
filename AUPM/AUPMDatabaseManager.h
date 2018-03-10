@@ -1,4 +1,5 @@
 #import <sqlite3.h>
+#import <pthread.h>
 #import "NSTask.h"
 #import "Repos/AUPMRepoManager.h"
 #import "Packages/AUPMPackage.h"
