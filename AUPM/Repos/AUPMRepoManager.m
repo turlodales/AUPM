@@ -3,6 +3,8 @@
 
 @implementation AUPMRepoManager
 
+id packages_to_id(const char *path);
+
 //Parse repo list from apt and convert to an AUPMRepo file for each one and return an array of them
 - (NSArray *)managedRepoList {
     NSFileManager *fileManager = [NSFileManager defaultManager];
@@ -81,29 +83,11 @@
         cachedPackagesFile = [NSString stringWithFormat:@"/var/lib/apt/lists/%@_main_binary-iphoneos-arm_Packages", [repo repoBaseFileName]]; //Do some funky package file with the default repos
         HBLogInfo(@"Default Repo Packages File: %@", cachedPackagesFile);
     }
+
+    NSArray *packageJSONArray = packages_to_id([cachedPackagesFile UTF8String]);
     NSMutableArray *packageListForRepo = [[NSMutableArray alloc] init];
-    NSError *error;
-    NSString *content = [NSString stringWithContentsOfFile:cachedPackagesFile encoding:NSMacOSRomanStringEncoding error:&error];
 
-    if (error != NULL) {
-        HBLogError(@"Error while reading packages: %@", error);
-    }
-
-    NSArray *packageInfoArray = [content componentsSeparatedByString:@"\n\n"];
-
-    for (NSString *package in packageInfoArray) {
-        NSString *trimmedString = [package stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-        NSArray *keyValuePairs = [trimmedString componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]];
-        NSMutableDictionary *dict = [NSMutableDictionary dictionary];
-
-        for (NSString *keyValuePair in keyValuePairs) {
-            NSString *trimmedPair = [keyValuePair stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-
-            NSArray *keyValues = [trimmedPair componentsSeparatedByString:@":"];
-
-            dict[[keyValues.firstObject stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]]] = [keyValues.lastObject stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-        }
-
+    for (NSMutableDictionary *dict in packageJSONArray) {
         if (dict[@"Name"] == NULL) {
             dict[@"Name"] = dict[@"Package"];
         }
@@ -114,11 +98,46 @@
         }
     }
 
-    NSSortDescriptor *sortByPackageName = [NSSortDescriptor sortDescriptorWithKey:@"packageName" ascending:YES];
-    NSArray *sortDescriptors = [NSArray arrayWithObject:sortByPackageName];
+    return packageListForRepo;
 
-    HBLogInfo(@"Done Reading Repo");
-    return [self cleanUpDuplicatePackages:[packageListForRepo sortedArrayUsingDescriptors:sortDescriptors]];
+    // NSMutableArray *packageListForRepo = [[NSMutableArray alloc] init];
+    // NSError *error;
+    // NSString *content = [NSString stringWithContentsOfFile:cachedPackagesFile encoding:NSMacOSRomanStringEncoding error:&error];
+    //
+    // if (error != NULL) {
+    //     HBLogError(@"Error while reading packages: %@", error);
+    // }
+    //
+    // NSArray *packageInfoArray = [content componentsSeparatedByString:@"\n\n"];
+    //
+    // for (NSString *package in packageInfoArray) {
+    //     NSString *trimmedString = [package stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+    //     NSArray *keyValuePairs = [trimmedString componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]];
+    //     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+    //
+    //     for (NSString *keyValuePair in keyValuePairs) {
+    //         NSString *trimmedPair = [keyValuePair stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+    //
+    //         NSArray *keyValues = [trimmedPair componentsSeparatedByString:@":"];
+    //
+    //         dict[[keyValues.firstObject stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]]] = [keyValues.lastObject stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+    //     }
+    //
+    //     if (dict[@"Name"] == NULL) {
+    //         dict[@"Name"] = dict[@"Package"];
+    //     }
+    //
+    //     if ([dict[@"Package"] rangeOfString:@"gsc"].location == NSNotFound && [dict[@"Package"] rangeOfString:@"cy+"].location == NSNotFound) {
+    //         AUPMPackage *package = [[AUPMPackage alloc] initWithPackageInformation:dict];
+    //         [packageListForRepo addObject:package];
+    //     }
+    // }
+    //
+    // NSSortDescriptor *sortByPackageName = [NSSortDescriptor sortDescriptorWithKey:@"packageName" ascending:YES];
+    // NSArray *sortDescriptors = [NSArray arrayWithObject:sortByPackageName];
+    //
+    // HBLogInfo(@"Done Reading Repo");
+    // return [self cleanUpDuplicatePackages:[packageListForRepo sortedArrayUsingDescriptors:sortDescriptors]];
 }
 
 @end
