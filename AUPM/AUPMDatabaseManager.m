@@ -114,10 +114,11 @@
             });
         }
         dispatch_group_wait(group, DISPATCH_TIME_FOREVER);
-        HBLogInfo(@"First load preparation complete");
+        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"dbSetupComplete"];
+        [[NSUserDefaults standardUserDefaults] synchronize];
 }
 
-- (void)copyDatabaseIntoDocumentsDirectory{
+- (void)copyDatabaseIntoDocumentsDirectory {
     NSString *destinationPath = [self.documentsDirectory stringByAppendingPathComponent:self.databaseFilename];
     if (![[NSFileManager defaultManager] fileExistsAtPath:destinationPath]) {
         NSString *sourcePath = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:self.databaseFilename];
