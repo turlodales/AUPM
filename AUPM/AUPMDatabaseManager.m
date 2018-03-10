@@ -24,6 +24,7 @@
 
 //Runs apt-get update and cahces all information from apt into a database
 - (void)firstLoadPopulation {
+    HBLogInfo(@"Beginning first load preparation");
     sqlite3 *sqlite3Database;
     NSString *databasePath = [self.documentsDirectory stringByAppendingPathComponent:self.databaseFilename];
 
@@ -80,9 +81,9 @@
             NSArray *packagesArray = [repoManager packageListForRepo:repo];
             HBLogInfo(@"Started to parse packages for repo %@", [repo repoName]);
             NSString *packageQuery = @"insert into packages(repoID, packageName, packageIdentifier, version, section, description, depictionURL) values(?,?,?,?,?,?,?)";
+            sqlite3_exec(sqlite3Database, "BEGIN TRANSACTION", NULL, NULL, NULL);
             for (AUPMPackage *package in packagesArray) {
                 //Populate packages database with packages from repo
-                sqlite3_exec(sqlite3Database, "BEGIN TRANSACTION", NULL, NULL, NULL);
 
                 if (sqlite3_prepare_v2(sqlite3Database, [packageQuery UTF8String], -1, &statement, nil) == SQLITE_OK) {
                     sqlite3_bind_int(statement, 1, (int)lastRowId);
@@ -97,12 +98,13 @@
                 else {
                     HBLogError(@"%s", sqlite3_errmsg(sqlite3Database));
                 }
-                sqlite3_exec(sqlite3Database, "COMMIT TRANSACTION", NULL, NULL, NULL);
-                sqlite3_finalize(statement);
             }
+            sqlite3_exec(sqlite3Database, "COMMIT TRANSACTION", NULL, NULL, NULL);
+            sqlite3_finalize(statement);
             HBLogInfo(@"Finished packages for repo %@", [repo repoName]);
         }
     }
+    HBLogInfo(@"First load preparation complete");
 }
 
 - (void)copyDatabaseIntoDocumentsDirectory{
@@ -119,16 +121,8 @@
 }
 
 - (void)purgeRecords:(sqlite3 *)database {
-    sqlite3_stmt *statement;
-    NSString *query = @"delete from repos; delete from packages;";
-
-    if (sqlite3_prepare_v2(database, [query UTF8String], -1, &statement, nil) == SQLITE_OK) {
-        sqlite3_step(statement);
-    }
-    else {
-        HBLogError(@"%s", sqlite3_errmsg(database));
-    }
-    sqlite3_finalize(statement);
+    sqlite3_exec(database, "DELETE FROM REPOS", NULL, NULL, NULL);
+    sqlite3_exec(database, "DELETE FROM PACKAGES", NULL, NULL, NULL);
 }
 
 @end
