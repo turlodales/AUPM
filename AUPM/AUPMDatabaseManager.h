@@ -12,4 +12,5 @@
 
 - (id)initWithDatabaseFilename:(NSString *)filename;
 - (void)firstLoadPopulation:(void (^)(BOOL success))completion;
+- (NSArray *)cachedListOfRepositories;
 @end

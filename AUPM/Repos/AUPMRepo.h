@@ -6,6 +6,7 @@
     NSString *repoURL;
 }
 - (id)initWithRepoInformation:(NSDictionary *)information;
+- (id) initWithRepoID:(int)id name:(NSString *)name baseFileName:(NSString *)baseFileName description:(NSString *)repoDescription url:(NSString *)url;
 - (void)setIcon:(NSData *)icon;
 - (void)setRepoName:(NSString *)name;
 - (void)setRepoBaseFileName:(NSString *)url;

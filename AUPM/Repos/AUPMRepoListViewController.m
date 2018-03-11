@@ -7,8 +7,8 @@
 - (void)loadView {
 	[super loadView];
 
-	AUPMRepoManager *repoManager = [[AUPMRepoManager alloc] init];
-	_objects = [[repoManager managedRepoList] mutableCopy];
+	AUPMDatabaseManager *databaseManager = [[AUPMDatabaseManager alloc] initWithDatabaseFilename:@"aupmpackagedb.sql"];
+	_objects = [[databaseManager cachedListOfRepositories] mutableCopy];
 
 	self.title = @"Repos";
 }

@@ -41,7 +41,7 @@
 		[packagesNavController setTabBarItem:packageIcon];
 
 		tabController.viewControllers = [NSArray arrayWithObjects:reposNavController, packagesNavController,nil];
-		[[UIApplication sharedApplication] keyWindow].rootViewController = self.tabBarController;
+		[[UIApplication sharedApplication] keyWindow].rootViewController = tabController;
     }];
 }
 

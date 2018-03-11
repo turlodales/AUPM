@@ -13,6 +13,15 @@
     return self;
 }
 
+- (id)initWithRepoID:(int)id name:(NSString *)name baseFileName:(NSString *)baseFileName description:(NSString *)repoDescription url:(NSString *)url {
+    [self setRepoName:name];
+    [self setRepoBaseFileName:baseFileName];
+    [self setDescription:repoDescription];
+    [self setRepoURL:url];
+
+    return self;
+}
+
 - (void)setIcon:(NSData *)ico {
     if (ico != NULL) {
         icon = ico;
