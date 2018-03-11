@@ -190,10 +190,11 @@
         HBLogError(@"%s", sqlite3_errmsg(database));
     }
     sqlite3_close(database);
+    AUPMRepoManager *repoManager = [[AUPMRepoManager alloc] init];
     NSSortDescriptor *sortByPackageName = [NSSortDescriptor sortDescriptorWithKey:@"packageName" ascending:YES];
     NSArray *sortDescriptors = [NSArray arrayWithObject:sortByPackageName];
 
-    return (NSArray*)[listOfPackages sortedArrayUsingDescriptors:sortDescriptors];
+    return [[repoManager cleanUpDuplicatePackages:listOfPackages] sortedArrayUsingDescriptors:sortDescriptors];
 }
 
 - (void)copyDatabaseIntoDocumentsDirectory {
