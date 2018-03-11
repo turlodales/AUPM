@@ -14,8 +14,8 @@
 - (void)loadView {
 	[super loadView];
 
-	AUPMRepoManager *repoManager = [[AUPMRepoManager alloc] init];
-	_objects = [[repoManager packageListForRepo:_repo] mutableCopy];
+	AUPMDatabaseManager *databaseManager = [[AUPMDatabaseManager alloc] initWithDatabaseFilename:@"aupmpackagedb.sql"];
+	_objects = [[databaseManager cachedPackageListForRepo:_repo] mutableCopy];
 }
 
 #pragma mark - Table View Data Source

@@ -13,13 +13,18 @@
     return self;
 }
 
-- (id)initWithRepoID:(int)id name:(NSString *)name baseFileName:(NSString *)baseFileName description:(NSString *)repoDescription url:(NSString *)url {
+- (id)initWithRepoID:(int)identifier name:(NSString *)name baseFileName:(NSString *)baseFileName description:(NSString *)repoDescription url:(NSString *)url {
+    [self setRepoID:identifier];
     [self setRepoName:name];
     [self setRepoBaseFileName:baseFileName];
     [self setDescription:repoDescription];
     [self setRepoURL:url];
 
     return self;
+}
+
+- (void)setRepoID:(int)identifier {
+    repoIdentifier = identifier;
 }
 
 - (void)setIcon:(NSData *)ico {
@@ -50,6 +55,10 @@
     if (url != NULL) {
         repoURL = url;
     }
+}
+
+- (int)repoIdentifier {
+    return repoIdentifier;
 }
 
 - (NSData *)icon {
