@@ -25,7 +25,7 @@
 
     AUPMDatabaseManager *databaseManager = [[AUPMDatabaseManager alloc] initWithDatabaseFilename:@"aupmpackagedb.sql"];
     [databaseManager firstLoadPopulation:^(BOOL success) {
-        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"dbSetupComplete"];
+        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"firstSetupComplete"];
         [[NSUserDefaults standardUserDefaults] synchronize];
 
         UITabBarController *tabController = [[UITabBarController alloc] init];

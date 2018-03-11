@@ -7,9 +7,7 @@
 	self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
 	self.window.backgroundColor = [UIColor whiteColor]; //Fixes a weird visual issue after pushing a vc
 
-	BOOL firstLaunch = true;
-	//![[NSUserDefaults standardUserDefaults] boolForKey:@"dbSetupComplete"]
-	if (!firstLaunch) {
+	if ([[NSUserDefaults standardUserDefaults] boolForKey:@"firstSetupComplete"]) {
 		UINavigationController *reposNavController = [[UINavigationController alloc] initWithRootViewController:[[AUPMRepoListViewController alloc] init]];
 		UITabBarItem *repoIcon = [[UITabBarItem alloc] initWithTitle:@"Repo" image:[UIImage imageNamed:@"Repo.png"] tag:0];
 		[repoIcon setFinishedSelectedImage:[UIImage imageNamed:@"Repo.png"] withFinishedUnselectedImage:[UIImage imageNamed:@"Repo.png"]];
