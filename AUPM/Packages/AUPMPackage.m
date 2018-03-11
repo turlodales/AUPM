@@ -13,6 +13,17 @@
     return self;
 }
 
+- (id)initWithPackageName:(NSString *)name packageID:(NSString *)identifier version:(NSString *)vers section:(NSString *)sect description:(NSString *)desc depictionURL:(NSString *)url {
+    [self setPackageName:name];
+    [self setPackageIdentifier:identifier];
+    [self setPackageVersion:vers];
+    [self setSection:sect];
+    [self setDescription:desc];
+    [self setDepictionURL:[NSURL URLWithString:[NSString stringWithFormat:@"http:%@", url]]];
+
+    return self;
+}
+
 - (BOOL)isInstalled {
     NSTask *task = [[NSTask alloc] init];
     [task setLaunchPath:@"/Applications/AUPM.app/supersling"];

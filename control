@@ -2,7 +2,8 @@ Package: com.xtm3x.aupm
 Name: AUPM
 Version: 0.0.1
 Architecture: iphoneos-arm
-Description: An awesome application!
+Depends: dpkg, cydia, sqlite3
+Description: A Useless Package Manager
 Maintainer: xTheMaster3x
 Author: xTheMaster3x
-Section: Utilities
+Section: Packaging

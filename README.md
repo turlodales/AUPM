@@ -9,7 +9,7 @@ A Useless Package Manager for iOS
   - [ ] Ability to add sources
   - [x] List packages from each sources
   - [ ] Source refresh UI
-  - [ ] Cache list of packages per repo
+  - [x] Cache list of packages per repo
 - [ ] Packages
   - [x] List installed packages
   - [x] Ability to install packages from a repository
