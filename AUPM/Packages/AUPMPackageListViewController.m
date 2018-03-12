@@ -1,4 +1,7 @@
 #import "AUPMPackageListViewController.h"
+#import "AUPMPackageManager.h"
+#import "AUPMPackage.h"
+#import "AUPMPackageViewController.h"
 
 @implementation AUPMPackageListViewController {
 	NSMutableArray *_objects;

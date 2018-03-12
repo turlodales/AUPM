@@ -1,4 +1,8 @@
 #import "AUPMRepoListViewController.h"
+#import "../AUPMDatabaseManager.h"
+#import "../Packages/AUPMConsoleViewController.h"
+#import "AUPMRepo.h"
+#import "AUPMRepoPackageListViewController.h"
 
 @implementation AUPMRepoListViewController {
 	NSMutableArray *_objects;
@@ -10,7 +14,16 @@
 	AUPMDatabaseManager *databaseManager = [[AUPMDatabaseManager alloc] initWithDatabaseFilename:@"aupmpackagedb.sql"];
 	_objects = [[databaseManager cachedListOfRepositories] mutableCopy];
 
+	UIBarButtonItem *refreshItem = [[UIBarButtonItem alloc] initWithTitle:@"Refresh" style:UIBarButtonItemStyleDone target:self action:@selector(refreshPackages)];
+	self.navigationItem.rightBarButtonItem = refreshItem;
+
 	self.title = @"Repos";
+}
+
+- (void)refreshPackages {
+	AUPMConsoleViewController *console = [[AUPMConsoleViewController alloc] initWithRefresh:true];
+	UINavigationController *navController = [[UINavigationController alloc] initWithRootViewController:console];
+    [self presentViewController:navController animated:true completion:nil];
 }
 
 #pragma mark - Table View Data Source

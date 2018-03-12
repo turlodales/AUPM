@@ -1,4 +1,3 @@
-#import "AUPMPackage.h"
 #import <WebKit/WebKit.h>
 
 @interface AUPMPackageViewController : UIViewController <WKNavigationDelegate>

@@ -1,5 +1,8 @@
 #import "AUPMAppDelegate.h"
 #import "AUPMDatabaseManager.h"
+#import "Repos/AUPMRepoListViewController.h"
+#import "Packages/AUPMPackageListViewController.h"
+#import "AUPMDataViewController.h"
 
 @implementation AUPMAppDelegate
 
@@ -7,6 +10,7 @@
 	self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
 	self.window.backgroundColor = [UIColor whiteColor]; //Fixes a weird visual issue after pushing a vc
 
+	//
 	if ([[NSUserDefaults standardUserDefaults] boolForKey:@"firstSetupComplete"]) {
 		UINavigationController *reposNavController = [[UINavigationController alloc] initWithRootViewController:[[AUPMRepoListViewController alloc] init]];
 		UITabBarItem *repoIcon = [[UITabBarItem alloc] initWithTitle:@"Repo" image:[UIImage imageNamed:@"Repo.png"] tag:0];

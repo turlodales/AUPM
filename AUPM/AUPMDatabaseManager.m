@@ -1,4 +1,8 @@
 #import "AUPMDatabaseManager.h"
+#import "NSTask.h"
+#import "Repos/AUPMRepoManager.h"
+#import "Repos/AUPMRepo.h"
+#import "Packages/AUPMPackage.h"
 
 @interface AUPMDatabaseManager ()
 @property (nonatomic, strong) NSString *documentsDirectory;
@@ -114,6 +118,54 @@
         });
     }
     dispatch_group_wait(group, DISPATCH_TIME_FOREVER);
+    completion(true);
+}
+
+- (void)updateDatabaseWithDifferences:(void (^)(BOOL success))completion {
+    NSString *databasePath = [self.documentsDirectory stringByAppendingPathComponent:self.databaseFilename];
+    AUPMRepoManager *repoManager = [[AUPMRepoManager alloc] init];
+    NSArray *repos = [repoManager managedRepoList];
+
+    for (AUPMRepo *repo in repos) {
+        NSArray *differences = [repoManager packagesChangedInRepo:repo];
+        if (differences != NULL) {
+            sqlite3 *sqlite3Database;
+            sqlite3_open([databasePath UTF8String], &sqlite3Database);
+            sqlite3_exec(sqlite3Database, "BEGIN TRANSACTION", NULL, NULL, NULL);
+            NSString *packageQuery = @"insert into packages(repoID, packageName, packageIdentifier, version, section, description, depictionURL) values(?,?,?,?,?,?,?)";
+            sqlite3_stmt *packageStatement;
+            if (sqlite3_prepare_v2(sqlite3Database, [packageQuery UTF8String], -1, &packageStatement, nil) == SQLITE_OK) {
+                for (NSString *string in differences) {
+                    NSArray *keyValuePairs = [string componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]];
+                    NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+
+                    for (NSString *keyValuePair in keyValuePairs) {
+                        NSString *trimmedPair = [keyValuePair stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+
+                        NSArray *keyValues = [trimmedPair componentsSeparatedByString:@":"];
+
+                        dict[[keyValues.firstObject stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]]] = [keyValues.lastObject stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+                    }
+                    sqlite3_bind_int(packageStatement, 1, [repo repoIdentifier]);
+                    sqlite3_bind_text(packageStatement, 2, [dict[@"Name"] UTF8String], -1, SQLITE_TRANSIENT);
+                    sqlite3_bind_text(packageStatement, 3, [dict[@"Package"] UTF8String], -1, SQLITE_TRANSIENT);
+                    sqlite3_bind_text(packageStatement, 4, [dict[@"Version"] UTF8String], -1, SQLITE_TRANSIENT);
+                    sqlite3_bind_text(packageStatement, 5, [dict[@"Section"] UTF8String], -1, SQLITE_TRANSIENT);
+                    sqlite3_bind_text(packageStatement, 6, [dict[@"Description"] UTF8String], -1, SQLITE_TRANSIENT);
+                    sqlite3_bind_text(packageStatement, 7, [[NSString stringWithFormat:@"http:%@", dict[@"Depiction"]] UTF8String], -1, SQLITE_TRANSIENT);
+                    sqlite3_step(packageStatement);
+                    sqlite3_reset(packageStatement);
+                    sqlite3_clear_bindings(packageStatement);
+                }
+            }
+            else {
+                HBLogError(@"%s", sqlite3_errmsg(sqlite3Database));
+            }
+            sqlite3_finalize(packageStatement);
+            sqlite3_exec(sqlite3Database, "COMMIT TRANSACTION", NULL, NULL, NULL);
+        }
+    }
+
     completion(true);
 }
 

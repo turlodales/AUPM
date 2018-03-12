@@ -1,11 +1,27 @@
 #import "AUPMConsoleViewController.h"
+#import "../AUPMDatabaseManager.h"
+#import "../NSTask.h"
 
 @implementation AUPMConsoleViewController {
     NSTask *_task;
+    BOOL _refresh;
     UITextView *_consoleOutputView;
 }
 
 - (id)initWithTask:(NSTask *)task {
+    _task = task;
+
+    return self;
+}
+
+- (id)initWithRefresh:(BOOL)refresh {
+    _refresh = refresh;
+
+    NSTask *task = [[NSTask alloc] init];
+    [task setLaunchPath:@"/Applications/AUPM.app/supersling"];
+    NSArray *arguments = [[NSArray alloc] initWithObjects: @"apt-get", @"update", nil];
+    [task setArguments:arguments];
+
     _task = task;
 
     return self;
@@ -24,13 +40,40 @@
     [output waitForDataInBackgroundAndNotify];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(receivedData:) name:NSFileHandleDataAvailableNotification object:output];
 
-    UIBarButtonItem *doneButton = [[UIBarButtonItem alloc] initWithTitle:@"Done" style:UIBarButtonItemStyleDone target:self action:@selector(dismissConsole)];
-    UINavigationItem *navItem = self.navigationItem;
-    _task.terminationHandler = ^(NSTask *task){
-        dispatch_async(dispatch_get_main_queue(), ^{
-            navItem.rightBarButtonItem = doneButton;
-        });
-    };
+    if (_refresh) {
+        UIBarButtonItem *doneButton = [[UIBarButtonItem alloc] initWithTitle:@"Done" style:UIBarButtonItemStyleDone target:self action:@selector(dismissConsole)];
+        UINavigationItem *navItem = self.navigationItem;
+
+        NSTask *cpTask = [[NSTask alloc] init];
+        [cpTask setLaunchPath:@"/Applications/AUPM.app/supersling"];
+        NSArray *cpArgs = [[NSArray alloc] initWithObjects: @"cp", @"-fR", @"/var/lib/apt/lists", @"/var/mobile/Library/Caches/com.xtm3x.aupm/", nil];
+        [cpTask setArguments:cpArgs];
+
+        [cpTask launch];
+        [cpTask waitUntilExit];
+
+        _task.terminationHandler = ^(NSTask *task){
+            dispatch_async(dispatch_get_main_queue(), ^{
+                HBLogInfo(@"Refreshing");
+                AUPMDatabaseManager *databaseManager = [[AUPMDatabaseManager alloc] initWithDatabaseFilename:@"aupmpackagedb.sql"];
+                [databaseManager updateDatabaseWithDifferences:^(BOOL success) {
+                    HBLogInfo(@"Database refresh complete");
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        navItem.rightBarButtonItem = doneButton;
+                    });
+                }];
+            });
+        };
+    }
+    else {
+        UIBarButtonItem *doneButton = [[UIBarButtonItem alloc] initWithTitle:@"Done" style:UIBarButtonItemStyleDone target:self action:@selector(dismissConsole)];
+        UINavigationItem *navItem = self.navigationItem;
+        _task.terminationHandler = ^(NSTask *task){
+            dispatch_async(dispatch_get_main_queue(), ^{
+                navItem.rightBarButtonItem = doneButton;
+            });
+        };
+    }
 
     [_task launch];
 }
@@ -42,12 +85,10 @@
 - (void)receivedData:(NSNotification *)notif {
     NSFileHandle *fh = [notif object];
     NSData *data = [fh availableData];
-    HBLogInfo(@"Received Data: %@", data);
 
     if (data.length > 0) {
         [fh waitForDataInBackgroundAndNotify];
         NSString *str = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-        HBLogInfo(@"Data String: %@", str);
         [_consoleOutputView.textStorage appendAttributedString:[[NSAttributedString alloc] initWithString:str]];
 
         if (_consoleOutputView.text.length > 0 ) {
