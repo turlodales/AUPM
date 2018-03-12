@@ -120,13 +120,13 @@ id packages_to_id(const char *path);
     NSString *cachedPackagesFile = [NSString stringWithFormat:@"/var/mobile/Library/Caches/com.xtm3x.aupm/lists/%@_Packages", [repo repoBaseFileName]];
     if (![[NSFileManager defaultManager] fileExistsAtPath:cachedPackagesFile]) {
         cachedPackagesFile = [NSString stringWithFormat:@"/var/mobile/Library/Caches/com.xtm3x.aupm/lists/%@_main_binary-iphoneos-arm_Packages", [repo repoBaseFileName]]; //Do some funky package file with the default repos
-        HBLogInfo(@"Default Repo Packages File: %@", cachedPackagesFile);
+        HBLogInfo(@"Default Cached Repo Packages File: %@", cachedPackagesFile);
     }
 
     NSString *localPackagesFile = [NSString stringWithFormat:@"/var/lib/apt/lists/%@_Packages", [repo repoBaseFileName]];
-    if (![[NSFileManager defaultManager] fileExistsAtPath:cachedPackagesFile]) {
+    if (![[NSFileManager defaultManager] fileExistsAtPath:localPackagesFile]) {
         localPackagesFile = [NSString stringWithFormat:@"/var/lib/apt/lists/%@_main_binary-iphoneos-arm_Packages", [repo repoBaseFileName]]; //Do some funky package file with the default repos
-        HBLogInfo(@"Default Repo Packages File: %@", cachedPackagesFile);
+        HBLogInfo(@"Default Local Repo Packages File: %@", cachedPackagesFile);
     }
 
     NSTask *task = [[NSTask alloc] init];
@@ -136,12 +136,16 @@ id packages_to_id(const char *path);
 
     NSPipe *out = [NSPipe pipe];
     [task setStandardOutput:out];
+    //[task setStandardError:out];
 
+    HBLogInfo(@"Running command diff %@ %@", cachedPackagesFile, localPackagesFile);
     [task launch];
     [task waitUntilExit];
 
     NSData *data = [[out fileHandleForReading] readDataToEndOfFile];
     NSString *outputString = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+
+    HBLogInfo(@"Diff Result: %@", outputString);
 
     NSMutableArray *changedPackageSums = [[NSMutableArray alloc] init];
 
@@ -152,6 +156,7 @@ id packages_to_id(const char *path);
             for (NSString *diff in lines) {
                 if ([diff hasPrefix:@"> MD5sum: "]) {
                     NSString *sum = [diff stringByReplacingOccurrencesOfString:@"> MD5sum: " withString:@""];
+                    HBLogInfo(@"Found added sum: %@", sum);
                     [changedPackageSums addObject:sum];
                 }
             }
