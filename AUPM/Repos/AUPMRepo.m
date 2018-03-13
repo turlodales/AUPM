@@ -14,6 +14,8 @@
 }
 
 - (id)initWithRepoID:(int)identifier name:(NSString *)name baseFileName:(NSString *)baseFileName description:(NSString *)repoDescription url:(NSString *)url {
+    HBLogInfo(@"Init with repo id: %d", identifier);
+
     [self setRepoID:identifier];
     [self setRepoName:name];
     [self setRepoBaseFileName:baseFileName];
@@ -25,6 +27,8 @@
 
 - (void)setRepoID:(int)identifier {
     repoIdentifier = identifier;
+    HBLogInfo(@"Set repoID to %d", identifier);
+    HBLogInfo(@"RepoID set to %d", [self repoIdentifier]);
 }
 
 - (void)setIcon:(NSData *)ico {

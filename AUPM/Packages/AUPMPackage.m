@@ -8,18 +8,20 @@
     [self setPackageVersion:information[@"Version"]];
     [self setSection:information[@"Section"]];
     [self setDescription:information[@"Description"]];
-    [self setDepictionURL:[NSURL URLWithString:[NSString stringWithFormat:@"http:%@", information[@"Depiction"]]]];
+    [self setDepictionURL:[NSURL URLWithString:[NSString stringWithFormat:@"%@", information[@"Depiction"]]]];
+    [self setSum:information[@"MD5sum"]];
 
     return self;
 }
 
-- (id)initWithPackageName:(NSString *)name packageID:(NSString *)identifier version:(NSString *)vers section:(NSString *)sect description:(NSString *)desc depictionURL:(NSString *)url {
+- (id)initWithPackageName:(NSString *)name packageID:(NSString *)identifier version:(NSString *)vers section:(NSString *)sect description:(NSString *)desc depictionURL:(NSString *)url sum:(NSString *)md5 {
     [self setPackageName:name];
     [self setPackageIdentifier:identifier];
     [self setPackageVersion:vers];
     [self setSection:sect];
     [self setDescription:desc];
-    [self setDepictionURL:[NSURL URLWithString:[NSString stringWithFormat:@"http:%@", url]]];
+    [self setDepictionURL:[NSURL URLWithString:[NSString stringWithFormat:@"%@", url]]];
+    [self setSum:md5];
 
     return self;
 }
@@ -96,6 +98,15 @@
     }
 }
 
+- (void)setSum:(NSString *)md5 {
+    if (md5 != NULL) {
+        sum = md5;
+    }
+    else {
+        sum = @"";
+    }
+}
+
 - (NSString *)packageName {
     return packageName;
 }
@@ -118,6 +129,10 @@
 
 - (NSURL *)depictionURL {
     return depictionURL;
+}
+
+- (NSString *)sum {
+    return sum;
 }
 
 @end

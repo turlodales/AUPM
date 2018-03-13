@@ -116,7 +116,7 @@ id packages_to_id(const char *path);
     return packageJSONArray;
 }
 
-- (NSArray *)packagesChangedInRepo:(AUPMRepo *)repo {
+- (NSDictionary *)packagesChangedInRepo:(AUPMRepo *)repo {
     NSString *cachedPackagesFile = [NSString stringWithFormat:@"/var/mobile/Library/Caches/com.xtm3x.aupm/lists/%@_Packages", [repo repoBaseFileName]];
     if (![[NSFileManager defaultManager] fileExistsAtPath:cachedPackagesFile]) {
         cachedPackagesFile = [NSString stringWithFormat:@"/var/mobile/Library/Caches/com.xtm3x.aupm/lists/%@_main_binary-iphoneos-arm_Packages", [repo repoBaseFileName]]; //Do some funky package file with the default repos
@@ -147,7 +147,9 @@ id packages_to_id(const char *path);
 
     HBLogInfo(@"Diff Result: %@", outputString);
 
-    NSMutableArray *changedPackageSums = [[NSMutableArray alloc] init];
+    NSMutableArray *addedPackageSums = [[NSMutableArray alloc] init];
+    NSMutableArray *removedPackageSums = [[NSMutableArray alloc] init];
+    NSMutableDictionary *results = [[NSMutableDictionary alloc] init];
 
     if (![outputString isEqual:@""]) {
         NSArray *changes = [outputString componentsSeparatedByString:@"---"];
@@ -157,24 +159,29 @@ id packages_to_id(const char *path);
                 if ([diff hasPrefix:@"> MD5sum: "]) {
                     NSString *sum = [diff stringByReplacingOccurrencesOfString:@"> MD5sum: " withString:@""];
                     HBLogInfo(@"Found added sum: %@", sum);
-                    [changedPackageSums addObject:sum];
+                    [addedPackageSums addObject:sum];
+                }
+                else if ([diff hasPrefix:@"< MD5sum: "]) {
+                    NSString *sum = [diff stringByReplacingOccurrencesOfString:@"< MD5sum: " withString:@""];
+                    HBLogInfo(@"Found removed sum: %@", sum);
+                    [removedPackageSums addObject:sum];
                 }
             }
         }
     }
 
-    NSArray *results;
-    for (NSString *sum in changedPackageSums) {
+    for (NSString *sum in addedPackageSums) {
         NSString *content = [NSString stringWithContentsOfFile:localPackagesFile encoding:NSUTF8StringEncoding error:NULL];
         NSArray *rawPackagesArray = [content componentsSeparatedByString:@"\n\n"];
 
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"SELF contains[c] %@", sum];
-        results = [rawPackagesArray filteredArrayUsingPredicate:predicate];
+        results[@"added"] = [rawPackagesArray filteredArrayUsingPredicate:predicate];
 
-        HBLogInfo(@"Changes: %@", results);
+        HBLogInfo(@"Added: %@", results);
     }
+    results[@"removed"] = removedPackageSums;
 
-    return results;
+    return (NSDictionary *)results;
 }
 
 -(NSString *)differenceBetween:(NSString *)string and:(NSString *)anotherString {
