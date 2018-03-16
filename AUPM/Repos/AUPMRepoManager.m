@@ -181,30 +181,18 @@ id packages_to_id(const char *path);
     return (NSDictionary *)results;
 }
 
--(NSString *)differenceBetween:(NSString *)string and:(NSString *)anotherString {
-    int i = string.length;
-    int j = anotherString.length;
-    NSString *result, *longest, *shortest;
+- (NSDictionary *)changedRepoList {
+    NSMutableDictionary *changedRepoList = [[NSMutableDictionary alloc] init];
+    NSArray *localRepoReleaseFiles = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:@"/var/lib/apt/lists" error:NULL];
+    NSArray *cachedRepoReleaseFiles = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:@"/var/mobile/Library/Caches/com.xtm3x.aupm/lists" error:NULL];
 
-    if (i == j) {
-        result = @"";
-        return result;
-    }
+    NSArray *added = [[localRepoReleaseFiles mutableCopy] removeObjectsInArray:cachedRepoReleaseFiles];
+    NSArray *removed = [[cachedRepoReleaseFiles mutableCopy] removeObjectsInArray:localRepoReleaseFiles];
 
-    if (i > j) {
-        longest = string;
-        shortest = anotherString;
-    } else {
-        longest = anotherString;
-        shortest = string;
-    }
+    changedRepoList[@"added"] = added;
+    changedRepoList[@"removed"] = removed;
 
-    NSArray *fa = [longest componentsSeparatedByString: @" " ];
-    NSArray *sa = [shortest componentsSeparatedByString: @" "];
-    NSMutableArray *remainder = [NSMutableArray arrayWithArray:fa];
-    [remainder removeObjectsInArray:sa];
-    result = [remainder componentsJoinedByString:@" "];
-    return result;
+    return changedRepoList;
 }
 
 @end
