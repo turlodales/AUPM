@@ -1,8 +1,8 @@
 #import "AUPMRepoListViewController.h"
-#import "../AUPMDatabaseManager.h"
 #import "../Packages/AUPMConsoleViewController.h"
 #import "AUPMRepo.h"
 #import "AUPMRepoPackageListViewController.h"
+#import "AUPMRepoManager.h"
 
 @implementation AUPMRepoListViewController {
 	NSMutableArray *_objects;
@@ -11,8 +11,8 @@
 - (void)loadView {
 	[super loadView];
 
-	AUPMDatabaseManager *databaseManager = [[AUPMDatabaseManager alloc] initWithDatabaseFilename:@"aupmpackagedb.sql"];
-	_objects = [[databaseManager cachedListOfRepositories] mutableCopy];
+	AUPMRepoManager *repoManager = [[AUPMRepoManager alloc] init];
+	_objects = [[repoManager managedRepoList] mutableCopy];
 
 	UIBarButtonItem *refreshItem = [[UIBarButtonItem alloc] initWithTitle:@"Refresh" style:UIBarButtonItemStyleDone target:self action:@selector(refreshPackages)];
 	self.navigationItem.rightBarButtonItem = refreshItem;
