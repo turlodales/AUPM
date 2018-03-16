@@ -130,8 +130,8 @@ id packages_to_id(const char *path);
     }
 
     NSTask *task = [[NSTask alloc] init];
-    [task setLaunchPath:@"/Applications/AUPM.app/supersling"];
-    NSArray *arguments = [[NSArray alloc] initWithObjects: @"diff", cachedPackagesFile, localPackagesFile, nil];
+    [task setLaunchPath:@"/bin/sh"];
+    NSArray *arguments = [[NSArray alloc] initWithObjects: @"-c", [NSString stringWithFormat:@"/Applications/AUPM.app/supersling diff %@ %@  | grep MD5sum:", cachedPackagesFile, localPackagesFile], nil];
     [task setArguments:arguments];
 
     NSPipe *out = [NSPipe pipe];
@@ -152,20 +152,17 @@ id packages_to_id(const char *path);
     NSMutableDictionary *results = [[NSMutableDictionary alloc] init];
 
     if (![outputString isEqual:@""]) {
-        NSArray *changes = [outputString componentsSeparatedByString:@"---"];
-        for (NSString *change in changes) {
-            NSArray *lines = [change componentsSeparatedByString:@"\n"];
-            for (NSString *diff in lines) {
-                if ([diff hasPrefix:@"> MD5sum: "]) {
-                    NSString *sum = [diff stringByReplacingOccurrencesOfString:@"> MD5sum: " withString:@""];
-                    HBLogInfo(@"Found added sum: %@", sum);
-                    [addedPackageSums addObject:sum];
-                }
-                else if ([diff hasPrefix:@"< MD5sum: "]) {
-                    NSString *sum = [diff stringByReplacingOccurrencesOfString:@"< MD5sum: " withString:@""];
-                    HBLogInfo(@"Found removed sum: %@", sum);
-                    [removedPackageSums addObject:sum];
-                }
+        NSArray *lines = [outputString componentsSeparatedByString:@"\n"];
+        for (NSString *diff in lines) {
+            if ([diff hasPrefix:@"> MD5sum: "]) {
+                NSString *sum = [diff stringByReplacingOccurrencesOfString:@"> MD5sum: " withString:@""];
+                HBLogInfo(@"Found added sum: %@", sum);
+                [addedPackageSums addObject:sum];
+            }
+            else if ([diff hasPrefix:@"< MD5sum: "]) {
+                NSString *sum = [diff stringByReplacingOccurrencesOfString:@"< MD5sum: " withString:@""];
+                HBLogInfo(@"Found removed sum: %@", sum);
+                [removedPackageSums addObject:sum];
             }
         }
     }

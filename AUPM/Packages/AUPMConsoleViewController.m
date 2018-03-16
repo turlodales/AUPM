@@ -29,7 +29,8 @@
 
 - (void)loadView {
     [super loadView];
-    _consoleOutputView = [[UITextView alloc] initWithFrame:self.view.frame];
+    CGFloat height = [[UIApplication sharedApplication] statusBarFrame].size.height + self.navigationController.navigationBar.frame.size.height;
+	_consoleOutputView = [[UITextView alloc] initWithFrame:CGRectMake(0,0, self.view.frame.size.width, self.view.frame.size.height - height)];
     _consoleOutputView.editable = false;
     [self.view addSubview:_consoleOutputView];
 
@@ -44,13 +45,13 @@
         UIBarButtonItem *doneButton = [[UIBarButtonItem alloc] initWithTitle:@"Done" style:UIBarButtonItemStyleDone target:self action:@selector(dismissConsole)];
         UINavigationItem *navItem = self.navigationItem;
 
-        NSTask *cpTask = [[NSTask alloc] init];
-        [cpTask setLaunchPath:@"/Applications/AUPM.app/supersling"];
-        NSArray *cpArgs = [[NSArray alloc] initWithObjects: @"cp", @"-fR", @"/var/lib/apt/lists", @"/var/mobile/Library/Caches/com.xtm3x.aupm/", nil];
-        [cpTask setArguments:cpArgs];
-
-        [cpTask launch];
-        [cpTask waitUntilExit];
+        // NSTask *cpTask = [[NSTask alloc] init];
+        // [cpTask setLaunchPath:@"/Applications/AUPM.app/supersling"];
+        // NSArray *cpArgs = [[NSArray alloc] initWithObjects: @"cp", @"-fR", @"/var/lib/apt/lists", @"/var/mobile/Library/Caches/com.xtm3x.aupm/", nil];
+        // [cpTask setArguments:cpArgs];
+        //
+        // [cpTask launch];
+        // [cpTask waitUntilExit];
 
         _task.terminationHandler = ^(NSTask *task){
             dispatch_async(dispatch_get_main_queue(), ^{
