@@ -11,7 +11,7 @@ A Useless Package Manager for iOS
   - [ ] Source refresh
     - [x] Manually Refresh sources
     - [ ] Import new repositories into database
-    - [x] Import new packages into database
+    - [ ] Import new packages into database
   - [x] Cache list of packages per repo
 - [ ] Packages
   - [x] List installed packages
