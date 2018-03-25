@@ -1,4 +1,5 @@
 #import "AUPMPackageManager.h"
+#import "AUPMPackage.h"
 
 @implementation AUPMPackageManager
 

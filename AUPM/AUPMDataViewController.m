@@ -1,4 +1,7 @@
 #import "AUPMDataViewController.h"
+#import "AUPMDatabaseManager.h"
+#import "Repos/AUPMRepoListViewController.h"
+#import "Packages/AUPMPackageListViewController.h"
 
 @implementation AUPMDataViewController
 
@@ -31,7 +34,7 @@
         UITabBarController *tabController = [[UITabBarController alloc] init];
 
         UINavigationController *reposNavController = [[UINavigationController alloc] initWithRootViewController:[[AUPMRepoListViewController alloc] init]];
-		UITabBarItem *repoIcon = [[UITabBarItem alloc] initWithTitle:@"Repo" image:[UIImage imageNamed:@"Repo.png"] tag:0];
+		UITabBarItem *repoIcon = [[UITabBarItem alloc] initWithTitle:@"Sources" image:[UIImage imageNamed:@"Repo.png"] tag:0];
 		[repoIcon setFinishedSelectedImage:[UIImage imageNamed:@"Repo.png"] withFinishedUnselectedImage:[UIImage imageNamed:@"Repo.png"]];
 		[reposNavController setTabBarItem:repoIcon];
 

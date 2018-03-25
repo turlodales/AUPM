@@ -1,4 +1,6 @@
 #import "AUPMPackageViewController.h"
+#import "AUPMPackage.h"
+#import "AUPMConsoleViewController.h"
 #import <objc/runtime.h>
 
 @implementation AUPMPackageViewController {

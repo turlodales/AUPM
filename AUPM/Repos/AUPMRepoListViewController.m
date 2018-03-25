@@ -3,6 +3,7 @@
 #import "AUPMRepo.h"
 #import "AUPMRepoPackageListViewController.h"
 #import "AUPMRepoManager.h"
+#import "../AUPMDataViewController.h"
 
 @implementation AUPMRepoListViewController {
 	NSMutableArray *_objects;
@@ -17,13 +18,13 @@
 	UIBarButtonItem *refreshItem = [[UIBarButtonItem alloc] initWithTitle:@"Refresh" style:UIBarButtonItemStyleDone target:self action:@selector(refreshPackages)];
 	self.navigationItem.rightBarButtonItem = refreshItem;
 
-	self.title = @"Repos";
+	self.title = @"Sources";
 }
 
 - (void)refreshPackages {
-	AUPMConsoleViewController *console = [[AUPMConsoleViewController alloc] initWithRefresh:true];
-	UINavigationController *navController = [[UINavigationController alloc] initWithRootViewController:console];
-    [self presentViewController:navController animated:true completion:nil];
+	AUPMDataViewController *dataLoadViewController = [[AUPMDataViewController alloc] init];
+
+	[[UIApplication sharedApplication] keyWindow].rootViewController = dataLoadViewController;
 }
 
 #pragma mark - Table View Data Source
