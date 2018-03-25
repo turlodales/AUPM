@@ -126,7 +126,7 @@ id packages_to_id(const char *path);
     NSString *localPackagesFile = [NSString stringWithFormat:@"/var/lib/apt/lists/%@_Packages", [repo repoBaseFileName]];
     if (![[NSFileManager defaultManager] fileExistsAtPath:localPackagesFile]) {
         localPackagesFile = [NSString stringWithFormat:@"/var/lib/apt/lists/%@_main_binary-iphoneos-arm_Packages", [repo repoBaseFileName]]; //Do some funky package file with the default repos
-        HBLogInfo(@"Default Local Repo Packages File: %@", cachedPackagesFile);
+        HBLogInfo(@"Default Local Repo Packages File: %@", localPackagesFile);
     }
 
     NSTask *task = [[NSTask alloc] init];
@@ -145,49 +145,60 @@ id packages_to_id(const char *path);
     NSData *data = [[out fileHandleForReading] readDataToEndOfFile];
     NSString *outputString = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
 
-    HBLogInfo(@"Diff Result: %@", outputString);
-
-    NSMutableArray *addedPackageSums = [[NSMutableArray alloc] init];
-    NSMutableArray *removedPackageSums = [[NSMutableArray alloc] init];
-    NSMutableDictionary *results = [[NSMutableDictionary alloc] init];
-
     if (![outputString isEqual:@""]) {
+        NSMutableArray *addedPackageSums = [[NSMutableArray alloc] init];
+        NSMutableArray *removedPackageSums = [[NSMutableArray alloc] init];
+        NSMutableDictionary *results = [[NSMutableDictionary alloc] init];
+
         NSArray *lines = [outputString componentsSeparatedByString:@"\n"];
         for (NSString *diff in lines) {
             if ([diff hasPrefix:@"> MD5sum: "]) {
                 NSString *sum = [diff stringByReplacingOccurrencesOfString:@"> MD5sum: " withString:@""];
-                HBLogInfo(@"Found added sum: %@", sum);
+                // HBLogInfo(@"Found added sum: %@", sum);
                 [addedPackageSums addObject:sum];
             }
             else if ([diff hasPrefix:@"< MD5sum: "]) {
                 NSString *sum = [diff stringByReplacingOccurrencesOfString:@"< MD5sum: " withString:@""];
-                HBLogInfo(@"Found removed sum: %@", sum);
+                // HBLogInfo(@"Found removed sum: %@", sum);
                 [removedPackageSums addObject:sum];
             }
         }
-    }
 
-    for (NSString *sum in addedPackageSums) {
-        NSString *content = [NSString stringWithContentsOfFile:localPackagesFile encoding:NSUTF8StringEncoding error:NULL];
+        NSError *readError;
+        NSString *content = [NSString stringWithContentsOfFile:localPackagesFile encoding:NSMacOSRomanStringEncoding error:&readError];
+        if (readError != NULL)
+        {
+            HBLogError(@"Error while reading file: %@", readError);
+        }
         NSArray *rawPackagesArray = [content componentsSeparatedByString:@"\n\n"];
+        for (NSString *sum in addedPackageSums) {
 
-        NSPredicate *predicate = [NSPredicate predicateWithFormat:@"SELF contains[c] %@", sum];
-        results[@"added"] = [rawPackagesArray filteredArrayUsingPredicate:predicate];
+            NSPredicate *predicate = [NSPredicate predicateWithFormat:@"SELF contains[c] %@", sum];
+            results[@"added"] = [rawPackagesArray filteredArrayUsingPredicate:predicate];
 
-        HBLogInfo(@"Added: %@", results);
+            // HBLogInfo(@"Added: %@", results);
+        }
+        results[@"removed"] = removedPackageSums;
+
+        return (NSDictionary *)results;
     }
-    results[@"removed"] = removedPackageSums;
+    else {
+        HBLogInfo(@"No changes for repo: %@", [repo repoName]);
 
-    return (NSDictionary *)results;
+        return NULL;
+    }
+
 }
 
 - (NSDictionary *)changedRepoList {
     NSMutableDictionary *changedRepoList = [[NSMutableDictionary alloc] init];
     NSArray *localRepoReleaseFiles = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:@"/var/lib/apt/lists" error:NULL];
+    NSMutableArray *added = [localRepoReleaseFiles mutableCopy];
     NSArray *cachedRepoReleaseFiles = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:@"/var/mobile/Library/Caches/com.xtm3x.aupm/lists" error:NULL];
+    NSMutableArray *removed = [cachedRepoReleaseFiles mutableCopy];
 
-    NSArray *added = [[localRepoReleaseFiles mutableCopy] removeObjectsInArray:cachedRepoReleaseFiles];
-    NSArray *removed = [[cachedRepoReleaseFiles mutableCopy] removeObjectsInArray:localRepoReleaseFiles];
+    [added removeObjectsInArray:cachedRepoReleaseFiles];
+    [removed removeObjectsInArray:localRepoReleaseFiles];
 
     changedRepoList[@"added"] = added;
     changedRepoList[@"removed"] = removed;

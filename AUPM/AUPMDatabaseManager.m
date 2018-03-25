@@ -132,93 +132,93 @@
 
     for (AUPMRepo *repo in repos) {
         NSDictionary *differences = [repoManager packagesChangedInRepo:repo];
-        NSArray *added = differences[@"added"];
-        NSArray *removed = differences[@"removed"];
+        if (differences != NULL) {
+            NSArray *added = differences[@"added"];
+            NSArray *removed = differences[@"removed"];
 
-        int repoID = 0;
-        NSString *query = @"select * from repos where repoBaseFileName = ?";
-        sqlite3_stmt *statement;
-        if (sqlite3_prepare_v2(sqlite3Database, [query UTF8String], -1, &statement, nil) == SQLITE_OK) {
-            sqlite3_bind_text(statement, 1, [[repo repoBaseFileName] UTF8String], -1, SQLITE_TRANSIENT);
-            sqlite3_step(statement);
-            HBLogError(@"%s", sqlite3_errmsg(sqlite3Database));
-            int iden = sqlite3_column_int(statement, 0);
-            HBLogInfo(@"iden: %d", iden);
-            repoID = iden;
-            sqlite3_reset(statement);
-            sqlite3_clear_bindings(statement);
-        }
-        else {
-            HBLogError(@"%s", sqlite3_errmsg(sqlite3Database));
-        }
-        sqlite3_finalize(statement);
-
-        HBLogInfo(@"Repo ID: %d", repoID);
-
-        if ([added count] != 0) {
-            HBLogInfo(@"Adding: %@", added);
-            sqlite3_exec(sqlite3Database, "BEGIN TRANSACTION", NULL, NULL, NULL);
-            NSString *packageQuery = @"insert into packages(repoID, packageName, packageIdentifier, version, section, description, depictionURL, md5sum) values(?,?,?,?,?,?,?,?)";
-            sqlite3_stmt *packageStatement;
-            HBLogInfo(@"Updated pacakge with repo id: %d", [repo repoIdentifier]);
-            if (sqlite3_prepare_v2(sqlite3Database, [packageQuery UTF8String], -1, &packageStatement, nil) == SQLITE_OK) {
-                for (NSString *string in added) {
-                    NSArray *keyValuePairs = [string componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]];
-                    NSMutableDictionary *dict = [NSMutableDictionary dictionary];
-
-                    for (NSString *keyValuePair in keyValuePairs) {
-                        NSString *trimmedPair = [keyValuePair stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-
-                        NSArray *keyValues = [trimmedPair componentsSeparatedByString:@":"];
-
-                        dict[[keyValues.firstObject stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]]] = [keyValues.lastObject stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-                    }
-
-                    sqlite3_bind_int(packageStatement, 1, repoID);
-                    sqlite3_bind_text(packageStatement, 2, [dict[@"Name"] UTF8String], -1, SQLITE_TRANSIENT);
-                    sqlite3_bind_text(packageStatement, 3, [dict[@"Package"] UTF8String], -1, SQLITE_TRANSIENT);
-                    sqlite3_bind_text(packageStatement, 4, [dict[@"Version"] UTF8String], -1, SQLITE_TRANSIENT);
-                    sqlite3_bind_text(packageStatement, 5, [dict[@"Section"] UTF8String], -1, SQLITE_TRANSIENT);
-                    sqlite3_bind_text(packageStatement, 6, [dict[@"Description"] UTF8String], -1, SQLITE_TRANSIENT);
-                    sqlite3_bind_text(packageStatement, 7, [[NSString stringWithFormat:@"http:%@", dict[@"Depiction"]] UTF8String], -1, SQLITE_TRANSIENT);
-                    sqlite3_bind_text(packageStatement, 8, [dict[@"MD5sum"] UTF8String], -1, SQLITE_TRANSIENT);
-                    sqlite3_step(packageStatement);
-                    sqlite3_reset(packageStatement);
-                    sqlite3_clear_bindings(packageStatement);
-                }
+            int repoID = 0;
+            NSString *query = @"select * from repos where repoBaseFileName = ?";
+            sqlite3_stmt *statement;
+            if (sqlite3_prepare_v2(sqlite3Database, [query UTF8String], -1, &statement, nil) == SQLITE_OK) {
+                sqlite3_bind_text(statement, 1, [[repo repoBaseFileName] UTF8String], -1, SQLITE_TRANSIENT);
+                sqlite3_step(statement);
+                int iden = sqlite3_column_int(statement, 0);
+                repoID = iden;
+                sqlite3_reset(statement);
+                sqlite3_clear_bindings(statement);
             }
             else {
                 HBLogError(@"%s", sqlite3_errmsg(sqlite3Database));
             }
-            sqlite3_finalize(packageStatement);
-            sqlite3_exec(sqlite3Database, "COMMIT TRANSACTION", NULL, NULL, NULL);
-        }
+            sqlite3_finalize(statement);
 
-        if ([removed count] != 0) {
-            HBLogInfo(@"Removing: %@", removed);
-            sqlite3_stmt *packageStatement;
-            sqlite3_exec(sqlite3Database, "BEGIN TRANSACTION", NULL, NULL, NULL);
-            for (NSString *sum in removed) {
-                NSString *packageQuery = [NSString stringWithFormat:@"DELETE FROM packages WHERE md5sum='%@'", sum];
+            HBLogInfo(@"Repo ID: %d", repoID);
+
+            if ([added count] != 0) {
+                HBLogInfo(@"Adding: %@", added);
+                sqlite3_exec(sqlite3Database, "BEGIN TRANSACTION", NULL, NULL, NULL);
+                NSString *packageQuery = @"insert into packages(repoID, packageName, packageIdentifier, version, section, description, depictionURL, md5sum) values(?,?,?,?,?,?,?,?)";
+                sqlite3_stmt *packageStatement;
+                HBLogInfo(@"Updated pacakge with repo id: %d", [repo repoIdentifier]);
                 if (sqlite3_prepare_v2(sqlite3Database, [packageQuery UTF8String], -1, &packageStatement, nil) == SQLITE_OK) {
-                    sqlite3_bind_text(packageStatement, 1, [sum UTF8String], -1, SQLITE_TRANSIENT);
-                    while (sqlite3_step(packageStatement) == SQLITE_ROW) {
-                        const char *packageNameChars = (const char *)sqlite3_column_text(packageStatement, 3);
-                        NSString *packageName = [[NSString alloc] initWithUTF8String:packageNameChars];
-                        HBLogInfo(@"Removal Result: %@", packageName);
+                    for (NSString *string in added) {
+                        NSArray *keyValuePairs = [string componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]];
+                        NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+
+                        for (NSString *keyValuePair in keyValuePairs) {
+                            NSString *trimmedPair = [keyValuePair stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+
+                            NSArray *keyValues = [trimmedPair componentsSeparatedByString:@":"];
+
+                            dict[[keyValues.firstObject stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]]] = [keyValues.lastObject stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+                        }
+
+                        sqlite3_bind_int(packageStatement, 1, repoID);
+                        sqlite3_bind_text(packageStatement, 2, [dict[@"Name"] UTF8String], -1, SQLITE_TRANSIENT);
+                        sqlite3_bind_text(packageStatement, 3, [dict[@"Package"] UTF8String], -1, SQLITE_TRANSIENT);
+                        sqlite3_bind_text(packageStatement, 4, [dict[@"Version"] UTF8String], -1, SQLITE_TRANSIENT);
+                        sqlite3_bind_text(packageStatement, 5, [dict[@"Section"] UTF8String], -1, SQLITE_TRANSIENT);
+                        sqlite3_bind_text(packageStatement, 6, [dict[@"Description"] UTF8String], -1, SQLITE_TRANSIENT);
+                        sqlite3_bind_text(packageStatement, 7, [[NSString stringWithFormat:@"http:%@", dict[@"Depiction"]] UTF8String], -1, SQLITE_TRANSIENT);
+                        sqlite3_bind_text(packageStatement, 8, [dict[@"MD5sum"] UTF8String], -1, SQLITE_TRANSIENT);
+                        sqlite3_step(packageStatement);
+                        sqlite3_reset(packageStatement);
+                        sqlite3_clear_bindings(packageStatement);
                     }
-                    sqlite3_reset(packageStatement);
-                    sqlite3_clear_bindings(packageStatement);
                 }
                 else {
                     HBLogError(@"%s", sqlite3_errmsg(sqlite3Database));
                 }
+                sqlite3_finalize(packageStatement);
+                sqlite3_exec(sqlite3Database, "COMMIT TRANSACTION", NULL, NULL, NULL);
             }
-            sqlite3_finalize(packageStatement);
-            sqlite3_exec(sqlite3Database, "COMMIT TRANSACTION", NULL, NULL, NULL);
 
+            if ([removed count] != 0) {
+                HBLogInfo(@"Removing: %@", removed);
+                sqlite3_stmt *packageStatement;
+                sqlite3_exec(sqlite3Database, "BEGIN TRANSACTION", NULL, NULL, NULL);
+                for (NSString *sum in removed) {
+                    NSString *packageQuery = [NSString stringWithFormat:@"DELETE FROM packages WHERE md5sum='%@'", sum];
+                    if (sqlite3_prepare_v2(sqlite3Database, [packageQuery UTF8String], -1, &packageStatement, nil) == SQLITE_OK) {
+                        sqlite3_bind_text(packageStatement, 1, [sum UTF8String], -1, SQLITE_TRANSIENT);
+                        while (sqlite3_step(packageStatement) == SQLITE_ROW) {
+                            const char *packageNameChars = (const char *)sqlite3_column_text(packageStatement, 3);
+                            NSString *packageName = [[NSString alloc] initWithUTF8String:packageNameChars];
+                            HBLogInfo(@"Removal Result: %@", packageName);
+                        }
+                        sqlite3_reset(packageStatement);
+                        sqlite3_clear_bindings(packageStatement);
+                    }
+                    else {
+                        HBLogError(@"%s", sqlite3_errmsg(sqlite3Database));
+                    }
+                }
+                sqlite3_finalize(packageStatement);
+                sqlite3_exec(sqlite3Database, "COMMIT TRANSACTION", NULL, NULL, NULL);
+
+            }
+            sqlite3_close(sqlite3Database);
         }
-        sqlite3_close(sqlite3Database);
     }
     completion(true);
 }
