@@ -1,9 +1,9 @@
 #import "AUPMRepoListViewController.h"
-#import "../Packages/AUPMConsoleViewController.h"
+#import "../AUPMConsoleViewController.h"
 #import "AUPMRepo.h"
-#import "AUPMRepoPackageListViewController.h"
 #import "AUPMRepoManager.h"
 #import "../AUPMDataViewController.h"
+#import "../Packages/AUPMPackageListViewController.h"
 
 @implementation AUPMRepoListViewController {
 	NSMutableArray *_objects;
@@ -58,7 +58,7 @@
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
 	[tableView deselectRowAtIndexPath:indexPath animated:YES];
 	AUPMRepo *repo = _objects[indexPath.row];
-	AUPMRepoPackageListViewController *packageListVC = [[AUPMRepoPackageListViewController alloc] initWithRepo:repo];
+	AUPMPackageListViewController *packageListVC = [[AUPMPackageListViewController alloc] initWithRepo:repo];
     [self.navigationController pushViewController:packageListVC animated:YES];
 }
 

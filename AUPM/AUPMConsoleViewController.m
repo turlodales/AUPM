@@ -1,6 +1,5 @@
 #import "AUPMConsoleViewController.h"
-#import "../AUPMDatabaseManager.h"
-#import "../NSTask.h"
+#import "NSTask.h"
 
 @implementation AUPMConsoleViewController {
     NSTask *_task;

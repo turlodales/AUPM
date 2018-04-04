@@ -2,18 +2,37 @@
 #import "AUPMPackageManager.h"
 #import "AUPMPackage.h"
 #import "AUPMPackageViewController.h"
+#import "../AUPMDatabaseManager.h"
+#import "../Repos/AUPMRepo.h"
 
 @implementation AUPMPackageListViewController {
 	NSMutableArray *_objects;
+	AUPMRepo *_repo;
+}
+
+- (id)initWithRepo:(AUPMRepo *)repo {
+	self = [super init];
+    if (self) {
+        _repo = repo;
+    }
+    return self;
 }
 
 - (void)loadView {
 	[super loadView];
 
-	AUPMPackageManager *packageManager = [[AUPMPackageManager alloc] init];
-	_objects = [[packageManager installedPackageList] mutableCopy];
+	if (_repo != NULL) {
+		AUPMDatabaseManager *databaseManager = [[AUPMDatabaseManager alloc] initWithDatabaseFilename:@"aupmpackagedb.sql"];
+		_objects = [[databaseManager cachedPackageListForRepo:_repo] mutableCopy];
 
-	self.title = @"Packages";
+		self.title = [_repo repoName];
+	}
+	else {
+		AUPMPackageManager *packageManager = [[AUPMPackageManager alloc] init];
+		_objects = [[packageManager installedPackageList] mutableCopy];
+
+		self.title = @"Packages";
+	}
 }
 
 #pragma mark - Table View Data Source
@@ -27,7 +46,7 @@
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-	static NSString *identifier = @"InstalledPackageTableViewCell";
+	static NSString *identifier = @"PackageTableViewCell";
 	UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:identifier];
 	AUPMPackage *package = _objects[indexPath.row];
 
