@@ -24,7 +24,6 @@
 	if (_repo != NULL) {
 		AUPMDatabaseManager *databaseManager = [[AUPMDatabaseManager alloc] initWithDatabaseFilename:@"aupmpackagedb.sql"];
 		_objects = [[databaseManager cachedPackageListForRepo:_repo] mutableCopy];
-		HBLogInfo(@"Cached objects: %@", _objects);
 
 		self.title = [_repo repoName];
 	}

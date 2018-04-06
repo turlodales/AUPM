@@ -128,7 +128,14 @@
 }
 
 - (NSURL *)depictionURL {
-    return depictionURL;
+    if ([[[depictionURL absoluteString] substringWithRange:NSMakeRange(0, 1)] isEqual:@"/"]) {
+        NSString *fixed = [@"http:" stringByAppendingString:[depictionURL absoluteString]];
+        [self setDepictionURL:[NSURL URLWithString:fixed]];
+        return depictionURL;
+    }
+    else {
+        return depictionURL;
+    }
 }
 
 - (NSString *)sum {
