@@ -12,6 +12,4 @@
 - (void)firstLoadPopulation:(void (^)(BOOL success))completion;
 - (NSArray *)cachedListOfRepositories;
 - (NSArray *)cachedPackageListForRepo:(AUPMRepo *)repo;
-- (BOOL)open;
-- (BOOL)close;
 @end

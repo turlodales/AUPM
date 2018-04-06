@@ -9,7 +9,6 @@
 - (void)applicationDidFinishLaunching:(UIApplication *)application {
 	self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
 	self.window.backgroundColor = [UIColor whiteColor]; //Fixes a weird visual issue after pushing a vc
-	self.databaseManager = [[AUPMDatabaseManager alloc] initWithDatabaseFilename:@"aupmpackagedb.sql"];
 
 	//
 	// if ([[NSUserDefaults standardUserDefaults] boolForKey:@"firstSetupComplete"]) {
