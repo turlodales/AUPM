@@ -6,4 +6,6 @@
 - (NSArray *)managedRepoList;
 - (NSArray *)packageListForRepo:(AUPMRepo *)repo;
 - (NSArray *)cleanUpDuplicatePackages:(NSArray *)packageList;
+- (void)addSource:(NSURL *)sourceURL;
+- (void)updateDefaultsFromAPTLists;
 @end

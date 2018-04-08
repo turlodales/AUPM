@@ -24,30 +24,25 @@ id packages_to_id(const char *path);
     self = [super init];
 
     if (self) {
-        self.repos = [self getRepos];
+        self.repos = [self reposFromDefaults];
     }
 
     return self;
 }
 
-- (NSArray *)getRepos {
-    NSArray *repos = [self reposFromDefaults];
-    if (repos != NULL) {
-        return repos;
-    }
-    else {
-        repos = [self reposFromAPTList];
-        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-        [defaults setObject:repos forKey:@"Repos"];
-
-        return repos;
-    }
-}
-
 - (NSArray *)reposFromDefaults {
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    NSArray *defaultRepos = [defaults objectForKey:@"Repos"];
+    NSArray *listRepos = [self reposFromAPTList];
 
-    return [defaults objectForKey:@"Repos"];
+    if (defaultRepos != listRepos) {
+        HBLogInfo(@"defualts does not equal apt list");
+        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+        [defaults setObject:listRepos forKey:@"Repos"];
+        return listRepos;
+    }
+
+    return defaultRepos;
 }
 
 - (NSArray *)reposFromAPTList {
@@ -95,6 +90,7 @@ id packages_to_id(const char *path);
 
     int i = 1;
     for (NSDictionary *repo in _repos) {
+        HBLogInfo(@"repos: %@", repo);
         AUPMRepo *source = [[AUPMRepo alloc] initWithRepoInformation:repo];
         [source setRepoID:i];
         i++;
@@ -155,19 +151,30 @@ id packages_to_id(const char *path);
 }
 
 - (void)addSource:(NSURL *)sourceURL {
+    HBLogInfo(@"ADDING SOURCE");
     NSString *URL = [sourceURL absoluteString];
-    NSString *output;
+    NSString *output = @"";
 
     for (NSDictionary *repo in _repos) {
         output = [output stringByAppendingFormat:@"deb %@ ./\n", repo[@"URL"]];
     }
-    output = [output stringByAppendingFormat:@"deb %@ ./\n", URL];
+    output = [output stringByAppendingFormat:@"deb %@/. ./\n", URL];
+
+    HBLogInfo(@"Output: %@", output);
 
     NSError *error;
-    [output writeToFile:@"/etc/apt/sources.list.d/cydia.list" atomically:TRUE encoding:NSUTF8StringEncoding error:&error];
-
+    [output writeToFile:@"/var/mobile/Library/Caches/com.xtm3x.aupm/newsources.list" atomically:TRUE encoding:NSUTF8StringEncoding error:&error];
     if (error != NULL) {
         HBLogError(@"Error while writing sources to file: %@", error);
+    }
+    else {
+        NSTask *task = [[NSTask alloc] init];
+        [task setLaunchPath:@"/Applications/AUPM.app/supersling"];
+        NSArray *arguments = [[NSArray alloc] initWithObjects:@"mv", @"/var/mobile/Library/Caches/com.xtm3x.aupm/newsources.list", @"/etc/apt/sources.list.d/cydia.list", nil];
+        [task setArguments:arguments];
+
+        [task launch];
+        [task waitUntilExit];
     }
 }
 
