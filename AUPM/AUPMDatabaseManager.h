@@ -10,6 +10,7 @@
 
 - (id)initWithDatabaseFilename:(NSString *)filename;
 - (void)firstLoadPopulation:(void (^)(BOOL success))completion;
+- (void)updatePopulation:(void (^)(BOOL success))completion;
 - (NSArray *)cachedListOfRepositories;
 - (NSArray *)cachedPackageListForRepo:(AUPMRepo *)repo;
 @end
