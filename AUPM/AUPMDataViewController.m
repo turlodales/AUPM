@@ -44,7 +44,7 @@
             [reposNavController setTabBarItem:repoIcon];
 
             UINavigationController *packagesNavController = [[UINavigationController alloc] initWithRootViewController:[[AUPMPackageListViewController alloc] init]];
-            UITabBarItem *packageIcon = [[UITabBarItem alloc] initWithTitle:@"Packages" image:[UIImage imageNamed:@"Packages.png"] tag:0];
+            UITabBarItem *packageIcon = [[UITabBarItem alloc] initWithTitle:@"Packages" image:[UIImage imageNamed:@"Packages.png"] tag:1];
             [packageIcon setFinishedSelectedImage:[UIImage imageNamed:@"Packages.png"] withFinishedUnselectedImage:[UIImage imageNamed:@"Packages.png"]];
             [packagesNavController setTabBarItem:packageIcon];
 
