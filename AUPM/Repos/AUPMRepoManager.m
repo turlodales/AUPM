@@ -71,8 +71,6 @@ id packages_to_id(const char *path);
                 dict[@"default"] = [NSNumber numberWithBool:true];
             }
 
-            HBLogInfo(@"repo: %@", dict);
-
             AUPMRepo *source = [[AUPMRepo alloc] initWithRepoInformation:dict];
             [source setRepoID:i];
             i++;
@@ -137,7 +135,6 @@ id packages_to_id(const char *path);
 }
 
 - (void)addSource:(NSURL *)sourceURL {
-    HBLogInfo(@"ADDING SOURCE");
     NSString *URL = [sourceURL absoluteString];
     NSString *output = @"";
 
@@ -156,21 +153,26 @@ id packages_to_id(const char *path);
     }
     output = [output stringByAppendingFormat:@"deb %@/ ./\n", URL];
 
-    HBLogInfo(@"Output: %@", output);
-
     NSError *error;
     [output writeToFile:@"/var/mobile/Library/Caches/com.xtm3x.aupm/newsources.list" atomically:TRUE encoding:NSUTF8StringEncoding error:&error];
     if (error != NULL) {
         HBLogError(@"Error while writing sources to file: %@", error);
     }
     else {
-        NSTask *task = [[NSTask alloc] init];
-        [task setLaunchPath:@"/Applications/AUPM.app/supersling"];
-        NSArray *arguments = [[NSArray alloc] initWithObjects:@"mv", @"/var/mobile/Library/Caches/com.xtm3x.aupm/newsources.list", @"/etc/apt/sources.list.d/cydia.list", nil];
-        [task setArguments:arguments];
+        NSTask *updateListTask = [[NSTask alloc] init];
+        [updateListTask setLaunchPath:@"/Applications/AUPM.app/supersling"];
+        NSArray *updateArgs = [[NSArray alloc] initWithObjects:@"cp", @"/var/mobile/Library/Caches/com.xtm3x.aupm/newsources.list", @"/etc/apt/sources.list.d/cydia.list", nil];
+        [updateListTask setArguments:updateArgs];
 
-        [task launch];
-        [task waitUntilExit];
+        [updateListTask launch];
+
+        NSTask *updateCydiaTask = [[NSTask alloc] init];
+        [updateCydiaTask setLaunchPath:@"/Applications/AUPM.app/supersling"];
+        NSArray *cydArgs = [[NSArray alloc] initWithObjects:@"cp", @"/var/mobile/Library/Caches/com.xtm3x.aupm/newsources.list", @"/var/mobile/Library/Caches/com.saurik.Cydia/sources.list", nil];
+        [updateCydiaTask setArguments:cydArgs];
+
+        [updateCydiaTask launch];
+        [updateCydiaTask waitUntilExit];
     }
 }
 
