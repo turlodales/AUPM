@@ -17,7 +17,7 @@
     activityIndicator.center = self.view.center;
 
     UILabel *warningLabel = [[UILabel alloc] init];
-    warningLabel.text = @"This may take an absurdly long time...";
+    warningLabel.text = @"Updating database...";
     [warningLabel sizeToFit];
     warningLabel.center = CGPointMake(self.view.center.x, self.view.center.y + 30);
     [self.view addSubview:warningLabel];
@@ -32,20 +32,25 @@
         [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"firstSetupComplete"];
         [[NSUserDefaults standardUserDefaults] synchronize];
 
-        UITabBarController *tabController = [[UITabBarController alloc] init];
+        if ([self presentingViewController]) {
+            [self dismissViewControllerAnimated:true completion:nil];
+        }
+        else {
+            UITabBarController *tabController = [[UITabBarController alloc] init];
 
-        UINavigationController *reposNavController = [[UINavigationController alloc] initWithRootViewController:[[AUPMRepoListViewController alloc] init]];
-        UITabBarItem *repoIcon = [[UITabBarItem alloc] initWithTitle:@"Sources" image:[UIImage imageNamed:@"Repo.png"] tag:0];
-        [repoIcon setFinishedSelectedImage:[UIImage imageNamed:@"Repo.png"] withFinishedUnselectedImage:[UIImage imageNamed:@"Repo.png"]];
-        [reposNavController setTabBarItem:repoIcon];
+            UINavigationController *reposNavController = [[UINavigationController alloc] initWithRootViewController:[[AUPMRepoListViewController alloc] init]];
+            UITabBarItem *repoIcon = [[UITabBarItem alloc] initWithTitle:@"Sources" image:[UIImage imageNamed:@"Repo.png"] tag:0];
+            [repoIcon setFinishedSelectedImage:[UIImage imageNamed:@"Repo.png"] withFinishedUnselectedImage:[UIImage imageNamed:@"Repo.png"]];
+            [reposNavController setTabBarItem:repoIcon];
 
-        UINavigationController *packagesNavController = [[UINavigationController alloc] initWithRootViewController:[[AUPMPackageListViewController alloc] init]];
-        UITabBarItem *packageIcon = [[UITabBarItem alloc] initWithTitle:@"Packages" image:[UIImage imageNamed:@"Packages.png"] tag:0];
-        [packageIcon setFinishedSelectedImage:[UIImage imageNamed:@"Packages.png"] withFinishedUnselectedImage:[UIImage imageNamed:@"Packages.png"]];
-        [packagesNavController setTabBarItem:packageIcon];
+            UINavigationController *packagesNavController = [[UINavigationController alloc] initWithRootViewController:[[AUPMPackageListViewController alloc] init]];
+            UITabBarItem *packageIcon = [[UITabBarItem alloc] initWithTitle:@"Packages" image:[UIImage imageNamed:@"Packages.png"] tag:0];
+            [packageIcon setFinishedSelectedImage:[UIImage imageNamed:@"Packages.png"] withFinishedUnselectedImage:[UIImage imageNamed:@"Packages.png"]];
+            [packagesNavController setTabBarItem:packageIcon];
 
-        tabController.viewControllers = [NSArray arrayWithObjects:reposNavController, packagesNavController,nil];
-        [[UIApplication sharedApplication] keyWindow].rootViewController = tabController;
+            tabController.viewControllers = [NSArray arrayWithObjects:reposNavController, packagesNavController,nil];
+            [[UIApplication sharedApplication] keyWindow].rootViewController = tabController;
+        }
     }];
 }
 

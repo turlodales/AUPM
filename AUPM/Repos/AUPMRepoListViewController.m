@@ -27,7 +27,7 @@
 - (void)refreshPackages {
 	AUPMDataViewController *dataLoadViewController = [[AUPMDataViewController alloc] init];
 
-	[[UIApplication sharedApplication] keyWindow].rootViewController = dataLoadViewController;
+	[self presentViewController:dataLoadViewController animated:true completion:nil];
 }
 
 - (void)showAddRepoAlert {
