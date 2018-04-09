@@ -30,6 +30,12 @@
 	[self presentViewController:dataLoadViewController animated:true completion:nil];
 }
 
+- (void)viewWillAppear:(BOOL)animated {
+	[super viewWillAppear:animated];
+
+	[self.tableView reloadData];
+}
+
 - (void)showAddRepoAlert {
     UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Enter URL"
                                                                              message:nil
@@ -108,7 +114,9 @@
     if (editingStyle == UITableViewCellEditingStyleDelete) {
 		AUPMRepoManager *repoManager = [[AUPMRepoManager alloc] init];
 		[repoManager deleteSource:[_objects objectAtIndex:indexPath.row]];
+		[_objects removeObjectAtIndex:indexPath.row];
 		[self refreshPackages];
+		[tableView reloadData];
     }
 }
 
