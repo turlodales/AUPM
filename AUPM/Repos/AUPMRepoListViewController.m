@@ -100,4 +100,16 @@
     [self.navigationController pushViewController:packageListVC animated:YES];
 }
 
+- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
+    return YES;
+}
+
+- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (editingStyle == UITableViewCellEditingStyleDelete) {
+		AUPMRepoManager *repoManager = [[AUPMRepoManager alloc] init];
+		[repoManager deleteSource:[_objects objectAtIndex:indexPath.row]];
+		[self refreshPackages];
+    }
+}
+
 @end
