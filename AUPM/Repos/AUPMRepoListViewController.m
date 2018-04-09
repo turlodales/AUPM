@@ -25,7 +25,7 @@
 }
 
 - (void)refreshPackages {
-	AUPMDataViewController *dataLoadViewController = [[AUPMDataViewController alloc] init];
+	AUPMDataViewController *dataLoadViewController = [[AUPMDataViewController alloc] initWithAction:1];
 
 	[self presentViewController:dataLoadViewController animated:true completion:nil];
 }

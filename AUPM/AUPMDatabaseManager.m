@@ -16,6 +16,8 @@
 
 @implementation AUPMDatabaseManager
 
+bool packages_file_changed(FILE* f1, FILE* f2);
+
 - (id)initWithDatabaseFilename:(NSString *)filename {
     self = [super init];
     if (self) {
