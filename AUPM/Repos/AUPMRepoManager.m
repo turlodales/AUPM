@@ -61,6 +61,7 @@ id packages_to_id(const char *path);
             if ([repoURL rangeOfString:@"dists"].location != NSNotFound) {
                 NSArray *urlsep = [repoURL componentsSeparatedByString:@"dists"];
                 repoURL = [urlsep objectAtIndex:0];
+                repoURL = [repoURL stringByAppendingString:@"/"];
             }
             repoURL = [NSString stringWithFormat:@"http://%@", repoURL];
             repoURL = [repoURL substringToIndex:[repoURL length] - 1];
