@@ -8,6 +8,9 @@
     [self setRepoBaseFileName:information[@"baseFileName"]];
     [self setDescription:information[@"Description"]];
     [self setRepoURL:information[@"URL"]];
+    [self setDefaultRepo:(BOOL)information[@"default"]];
+    [self setSuite:information[@"Suite"]];
+    [self setComponents:information[@"Components"]];
 
     return self;
 }
@@ -20,6 +23,22 @@
     [self setRepoURL:url];
 
     return self;
+}
+
+- (void)setSuite:(NSString *)stab {
+    if (stab != NULL) {
+        suite = stab;
+    }
+}
+
+- (void)setComponents:(NSString *)comp {
+    if (comp != NULL) {
+        components = comp;
+    }
+}
+
+- (void)setDefaultRepo:(BOOL)def {
+    defaultRepo = def;
 }
 
 - (void)setRepoID:(int)identifier {
@@ -54,6 +73,18 @@
     if (url != NULL) {
         repoURL = url;
     }
+}
+
+- (NSString *)components {
+    return components;
+}
+
+- (NSString *)suite {
+    return suite;
+}
+
+- (BOOL)defaultRepo {
+    return defaultRepo;
 }
 
 - (int)repoIdentifier {

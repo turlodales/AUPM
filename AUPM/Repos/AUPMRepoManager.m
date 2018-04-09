@@ -24,33 +24,19 @@ id packages_to_id(const char *path);
     self = [super init];
 
     if (self) {
-        self.repos = [self reposFromDefaults];
+        self.repos = [self managedRepoList];
     }
 
     return self;
 }
 
-- (NSArray *)reposFromDefaults {
-    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-    NSArray *defaultRepos = [defaults objectForKey:@"Repos"];
-    NSArray *listRepos = [self reposFromAPTList];
-
-    if (defaultRepos != listRepos) {
-        HBLogInfo(@"defualts does not equal apt list");
-        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-        [defaults setObject:listRepos forKey:@"Repos"];
-        return listRepos;
-    }
-
-    return defaultRepos;
-}
-
-- (NSArray *)reposFromAPTList {
+- (NSArray *)managedRepoList {
     NSFileManager *fileManager = [NSFileManager defaultManager];
     NSString *aptListDirectory = @"/var/lib/apt/lists";
     NSArray *listOfFiles = [fileManager contentsOfDirectoryAtPath:aptListDirectory error:nil];
-    NSMutableArray *repoArray = [[NSMutableArray alloc] init];
+    NSMutableArray *managedRepoList = [[NSMutableArray alloc] init];
 
+    int i = 1;
     for (NSString *path in listOfFiles) {
         if (([path rangeOfString:@"Release"].location != NSNotFound) && ([path rangeOfString:@".gpg"].location == NSNotFound)) {
             NSString *fullPath = [NSString stringWithFormat:@"/var/lib/apt/lists/%@", path];
@@ -72,32 +58,31 @@ id packages_to_id(const char *path);
             dict[@"baseFileName"] = baseFileName;
             NSString *repoURL = baseFileName;
             repoURL = [repoURL stringByReplacingOccurrencesOfString:@"_" withString:@"/"];
+            if ([repoURL rangeOfString:@"dists"].location != NSNotFound) {
+                NSArray *urlsep = [repoURL componentsSeparatedByString:@"dists"];
+                repoURL = [urlsep objectAtIndex:0];
+            }
             repoURL = [NSString stringWithFormat:@"http://%@", repoURL];
+            repoURL = [repoURL substringToIndex:[repoURL length] - 1];
             dict[@"URL"] = repoURL;
 
-            [repoArray addObject:dict];
+            if ([baseFileName rangeOfString:@"saurik"].location != NSNotFound || [baseFileName rangeOfString:@"bigboss"].location != NSNotFound || [baseFileName rangeOfString:@"zodttd"].location != NSNotFound) {
+                dict[@"default"] = [NSNumber numberWithBool:true];
+            }
+
+            HBLogInfo(@"repo: %@", dict);
+
+            AUPMRepo *source = [[AUPMRepo alloc] initWithRepoInformation:dict];
+            [source setRepoID:i];
+            i++;
+            [managedRepoList addObject:source];
         }
     }
 
-    NSSortDescriptor *sortByRepoName = [NSSortDescriptor sortDescriptorWithKey:@"Origin" ascending:YES];
+    NSSortDescriptor *sortByRepoName = [NSSortDescriptor sortDescriptorWithKey:@"repoName" ascending:YES];
     NSArray *sortDescriptors = [NSArray arrayWithObject:sortByRepoName];
 
-    return (NSArray*)[repoArray sortedArrayUsingDescriptors:sortDescriptors];
-}
-
-- (NSArray *)managedRepoList {
-    NSMutableArray *managedRepoList = [[NSMutableArray alloc] init];
-
-    int i = 1;
-    for (NSDictionary *repo in _repos) {
-        HBLogInfo(@"repos: %@", repo);
-        AUPMRepo *source = [[AUPMRepo alloc] initWithRepoInformation:repo];
-        [source setRepoID:i];
-        i++;
-        [managedRepoList addObject:source];
-    }
-
-    return managedRepoList;
+    return (NSArray*)[managedRepoList sortedArrayUsingDescriptors:sortDescriptors];
 }
 
 - (NSArray *)cleanUpDuplicatePackages:(NSArray *)packageList {
@@ -155,10 +140,20 @@ id packages_to_id(const char *path);
     NSString *URL = [sourceURL absoluteString];
     NSString *output = @"";
 
-    for (NSDictionary *repo in _repos) {
-        output = [output stringByAppendingFormat:@"deb %@ ./\n", repo[@"URL"]];
+    for (AUPMRepo *repo in _repos) {
+        if ([repo defaultRepo]) {
+            if ([[repo repoName] isEqual:@"Cydia/Telesphoreo"]) {
+                output = [output stringByAppendingFormat:@"deb http://apt.saurik.com/ ios/%.2f main\n",kCFCoreFoundationVersionNumber];
+            }
+            else {
+                output = [output stringByAppendingFormat:@"deb %@ %@ %@\n", [repo repoURL], [repo suite], [repo components]];
+            }
+        }
+        else {
+            output = [output stringByAppendingFormat:@"deb %@ ./\n", [repo repoURL]];
+        }
     }
-    output = [output stringByAppendingFormat:@"deb %@/. ./\n", URL];
+    output = [output stringByAppendingFormat:@"deb %@/ ./\n", URL];
 
     HBLogInfo(@"Output: %@", output);
 
@@ -176,12 +171,6 @@ id packages_to_id(const char *path);
         [task launch];
         [task waitUntilExit];
     }
-}
-
-- (void)updateDefaultsFromAPTLists {
-    NSArray *repos = [self reposFromAPTList];
-    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-    [defaults setObject:repos forKey:@"Repos"];
 }
 
 @end
