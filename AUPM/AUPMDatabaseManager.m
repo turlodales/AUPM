@@ -297,7 +297,8 @@ bool packages_file_changed(FILE* f1, FILE* f2);
             const char *sectionChars = (const char *)sqlite3_column_text(statement, 5);
             const char *descriptionChars = (const char *)sqlite3_column_text(statement, 6);
             const char *depictionChars = (const char *)sqlite3_column_text(statement, 7);
-            const char *sumChars = (const char *)sqlite3_column_text(statement, 9);
+            // const char *sumChars = (const char *)sqlite3_column_text(statement, 9);
+            // HBLogInfo(@"%s", sumChars);
             NSString *packageName = [[NSString alloc] initWithUTF8String:packageNameChars];
             NSString *packageID = [[NSString alloc] initWithUTF8String:packageIDChars];
             NSString *version = [[NSString alloc] initWithUTF8String:versionChars];
@@ -312,9 +313,9 @@ bool packages_file_changed(FILE* f1, FILE* f2);
             {
                 depictionURL = [[NSString alloc] initWithUTF8String:depictionChars];
             }
-            NSString *md5sum = [[NSString alloc] initWithUTF8String:sumChars];
+            //NSString *md5sum = [[NSString alloc] initWithUTF8String:sumChars];
 
-            AUPMPackage *package = [[AUPMPackage alloc] initWithPackageName:packageName packageID:packageID version:version section:section description:description depictionURL:depictionURL sum:md5sum];
+            AUPMPackage *package = [[AUPMPackage alloc] initWithPackageName:packageName packageID:packageID version:version section:section description:description depictionURL:depictionURL sum:nil];
             [listOfPackages addObject:package];
         }
         sqlite3_finalize(statement);
