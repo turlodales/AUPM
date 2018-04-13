@@ -9,7 +9,7 @@
 
 @implementation AUPMRepoManager
 
-id packages_to_id(const char *path);
+NSArray *packages_to_array(const char *path);
 
 + (id)sharedInstance {
     static AUPMRepoManager *instance = nil;
@@ -117,16 +117,15 @@ id packages_to_id(const char *path);
         HBLogInfo(@"Default Repo Packages File: %@", cachedPackagesFile);
     }
 
-    NSArray *packageJSONArray = packages_to_id([cachedPackagesFile UTF8String]);
+    NSArray *packageArray = packages_to_array([cachedPackagesFile UTF8String]);
     NSMutableArray *packageListForRepo = [[NSMutableArray alloc] init];
 
-    for (NSMutableDictionary *dict in packageJSONArray) {
+    for (NSMutableDictionary *dict in packageArray) {
         if (dict[@"Name"] == NULL) {
             dict[@"Name"] = dict[@"Package"];
         }
 
-        if ([dict[@"Package"] rangeOfString:@"gsc"].location == NSNotFound && [dict[@"Package"] rangeOfString:@"cy+"].location == NSNotFound) {
-            AUPMPackage *package = [[AUPMPackage alloc] initWithPackageInformation:dict];
+        if ([dict[@"Package"] rangeOfString:@"gsc"].location == NSNotFound && [dict[@"Package"] rangeOfString:@"cy+"].location == NSNotFound) {                AUPMPackage *package = [[AUPMPackage alloc] initWithPackageInformation:dict];
             [packageListForRepo addObject:package];
         }
     }

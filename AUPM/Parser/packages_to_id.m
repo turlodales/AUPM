@@ -1,60 +1,55 @@
 #import <Foundation/Foundation.h>
-#import "cJSON.h"
 
+bool packages_file_changed(FILE* f1, FILE* f2) {
+    int N = 0x1000;
+    char buf1[N];
+    char buf2[N];
 
-cJSON * jjjj_apt_list_parse(FILE *f, int *errlineno, int flags);
+    do {
+        size_t r1 = fread(buf1, 1, N, f1);
+        size_t r2 = fread(buf2, 1, N, f2);
 
-id json_to_id(cJSON *json)
-{
-    if(json == NULL) {
-        return nil;
-    }
-
-    cJSON *child;
-    switch(json->type) {
-    case cJSON_False:
-        return [NSNumber numberWithBool:false];
-    case cJSON_True:
-        return [NSNumber numberWithBool:true];
-    case cJSON_Number:
-        return [NSNumber numberWithDouble:json->valuedouble];
-    case cJSON_String:
-        return [NSString stringWithUTF8String:json->valuestring];
-    case cJSON_Array: {
-        NSMutableArray *arr = NSMutableArray.array;
-        child = json->child;
-        while(child) {
-            id v = json_to_id(child);
-            if(v) {
-                [arr addObject:json_to_id(child)];
-            }
-            child = child->next;
+        if (r1 != r2 || memcmp(buf1, buf2, r1)) {
+            return true;
         }
-        return arr;
-    }
-    case cJSON_Object: {
-        NSMutableDictionary *dict = NSMutableDictionary.dictionary;
-        child = json->child;
-        while(child) {
-            NSString *k = [NSString stringWithUTF8String:child->string];
-            id v = json_to_id(child);
-            if(k && v) {
-                [dict setObject:v forKey:k];
-            }
-            child = child->next;
-        }
-        return dict;
-    }
-    default:
-        return nil;
-    }
+    } while (!feof(f1) && !feof(f2));
+
+    return false;
 }
 
-id packages_to_id(const char *path)
+NSArray *packages_to_array(const char *path)
 {
-    FILE *f = fopen(path, "r");
-    cJSON *json = jjjj_apt_list_parse(f, NULL, 0);
-    id obj = json_to_id(json);
-    cJSON_Delete(json);
-    return obj;
+    NSDate *methodStart = [NSDate date];
+    CFMutableArrayRef packages = CFArrayCreateMutable(kCFAllocatorDefault, 10, &kCFTypeArrayCallBacks);
+
+    FILE* file = fopen(path, "r");
+    char line[256];
+
+    CFMutableDictionaryRef package = CFDictionaryCreateMutable(kCFAllocatorDefault, 10, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+    while (fgets(line, sizeof(line), file)) {
+        if (strcmp(line, "\n") != 0) {
+            int len = (int)strlen(line);
+            char *colon = strchr(line, ':');
+            if (colon != NULL) {
+                int colonIndex = (int)(colon - line);
+
+                const UInt8 *bytes = (const UInt8 *)line;
+                CFStringRef key = CFStringCreateWithBytes(kCFAllocatorDefault, bytes, colonIndex, kCFStringEncodingMacRoman, true);
+                bytes += colonIndex + 2;
+                CFStringRef value = CFStringCreateWithBytes(kCFAllocatorDefault, bytes, len - (colonIndex + 1), kCFStringEncodingMacRoman, true);
+                CFDictionaryAddValue(package, key, value);
+            }
+        }
+        else {
+            CFArrayAppendValue(packages, CFDictionaryCreateCopy(kCFAllocatorDefault, package));
+            CFDictionaryRemoveAllValues(package);
+        }
+    }
+
+    fclose(file);
+    NSDate *methodFinish = [NSDate date];
+    NSTimeInterval executionTime = [methodFinish timeIntervalSinceDate:methodStart];
+    HBLogInfo(@"Parsed %s in %f seconds.", path, executionTime);
+
+    return (__bridge NSArray*)packages;
 }
