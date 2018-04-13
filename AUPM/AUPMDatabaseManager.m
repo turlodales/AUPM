@@ -16,6 +16,8 @@
 
 @implementation AUPMDatabaseManager
 
+bool packages_file_changed(FILE* f1, FILE* f2);
+
 - (id)initWithDatabaseFilename:(NSString *)filename {
     self = [super init];
     if (self) {
@@ -125,6 +127,121 @@
     completion(true);
 }
 
+- (void)updatePopulation:(void (^)(BOOL success))completion {
+    AUPMRepoManager *repoManager = [[AUPMRepoManager alloc] init];
+    NSString *databasePath = [self.documentsDirectory stringByAppendingPathComponent:self.databaseFilename];
+
+    NSTask *cpTask = [[NSTask alloc] init];
+    [cpTask setLaunchPath:@"/Applications/AUPM.app/supersling"];
+    NSArray *cpArgs = [[NSArray alloc] initWithObjects: @"cp", @"-fR", @"/var/lib/apt/lists", @"/var/mobile/Library/Caches/com.xtm3x.aupm/", nil];
+    [cpTask setArguments:cpArgs];
+
+    [cpTask launch];
+    [cpTask waitUntilExit];
+
+    NSTask *refreshTask = [[NSTask alloc] init];
+    [refreshTask setLaunchPath:@"/Applications/AUPM.app/supersling"];
+    NSArray *refArgs = [[NSArray alloc] initWithObjects: @"apt-get", @"update", nil];
+    [refreshTask setArguments:refArgs];
+
+    [refreshTask launch];
+    [refreshTask waitUntilExit];
+
+    NSArray *repoArray = [repoManager managedRepoList];
+    dispatch_group_t group = dispatch_group_create();
+    for (AUPMRepo *repo in repoArray) {
+        BOOL needsUpdate = false;
+        NSString *aptPackagesFile = [NSString stringWithFormat:@"/var/lib/apt/lists/%@_Packages", [repo repoBaseFileName]];
+        if (![[NSFileManager defaultManager] fileExistsAtPath:aptPackagesFile]) {
+            aptPackagesFile = [NSString stringWithFormat:@"/var/lib/apt/lists/%@_main_binary-iphoneos-arm_Packages", [repo repoBaseFileName]]; //Do some funky package file with the default repos
+            HBLogInfo(@"Default Repo Packages File: %@", aptPackagesFile);
+        }
+
+        NSString *cachedPackagesFile = [NSString stringWithFormat:@"/var/mobile/Library/Caches/com.xtm3x.aupm/lists/%@_Packages", [repo repoBaseFileName]];
+        if (![[NSFileManager defaultManager] fileExistsAtPath:cachedPackagesFile]) {
+            cachedPackagesFile = [NSString stringWithFormat:@"/var/mobile/Library/Caches/com.xtm3x.aupm/lists/%@_main_binary-iphoneos-arm_Packages", [repo repoBaseFileName]]; //Do some funky package file with the default repos
+            if (![[NSFileManager defaultManager] fileExistsAtPath:cachedPackagesFile]) {
+                HBLogInfo(@"There is no cache file for %@ so it needs an update", [repo repoName]);
+                needsUpdate = true; //There isn't a cache for this so we need to parse it
+            }
+        }
+
+        if (!needsUpdate) {
+            FILE *aptFile = fopen([aptPackagesFile UTF8String], "r");
+            FILE *cachedFile = fopen([cachedPackagesFile UTF8String], "r");
+            needsUpdate = packages_file_changed(aptFile, cachedFile);
+
+            HBLogInfo(@"packaged file changed: %@", needsUpdate ? @"true" : @"false");
+        }
+
+        if (needsUpdate) {
+            sqlite3_config(SQLITE_CONFIG_SERIALIZED);
+            static pthread_mutex_t mutex;
+            pthread_mutex_init(&mutex,NULL);
+            dispatch_group_async(group, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^ {
+                sqlite3 *sqlite3Database;
+                sqlite3_open([databasePath UTF8String], &sqlite3Database);
+                sqlite3_stmt *repoStatement;
+
+                //Replace repo information
+                int repoID = [repo repoIdentifier];
+                HBLogInfo(@"Removing information about repo %d (%@)", repoID, [repo repoName]);
+                NSString *repoUpdateQuery = @"UPDATE repos SET repoName = ?, repoBaseFileName = ?, description = ?, repoURL = ?, icon = ? WHERE repoID = ?";
+
+                //Update repo
+                pthread_mutex_lock(&mutex);
+                if (sqlite3_prepare_v2(sqlite3Database, [repoUpdateQuery UTF8String], -1, &repoStatement, nil) == SQLITE_OK) {
+                    sqlite3_bind_text(repoStatement, 1, [[repo repoName] UTF8String], -1, SQLITE_TRANSIENT);
+                    sqlite3_bind_text(repoStatement, 2, [[repo repoBaseFileName] UTF8String], -1, SQLITE_TRANSIENT);
+                    sqlite3_bind_text(repoStatement, 3, [[repo description] UTF8String], -1, SQLITE_TRANSIENT);
+                    sqlite3_bind_text(repoStatement, 4, [[repo repoURL] UTF8String], -1, SQLITE_TRANSIENT);
+                    sqlite3_bind_blob(repoStatement, 5, (__bridge const void *)[repo icon], -1, SQLITE_TRANSIENT);
+                    sqlite3_bind_int(repoStatement, 6, repoID);
+                    sqlite3_step(repoStatement);
+                }
+                else {
+                    HBLogError(@"%s", sqlite3_errmsg(sqlite3Database));
+                }
+                sqlite3_finalize(repoStatement);
+                pthread_mutex_unlock(&mutex);
+
+                sqlite3_exec(sqlite3Database, [[NSString stringWithFormat:@"DELETE FROM packages WHERE repoID = %d", repoID] UTF8String], NULL, NULL, NULL); //Remove all packages from repo
+
+                NSArray *packagesArray = [repoManager packageListForRepo:repo];
+                HBLogInfo(@"Started to parse packages for repo %@", [repo repoName]);
+                NSString *packageQuery = @"insert into packages(repoID, packageName, packageIdentifier, version, section, description, depictionURL) values(?,?,?,?,?,?,?)";
+                sqlite3_stmt *packageStatement;
+                pthread_mutex_lock(&mutex);
+                sqlite3_exec(sqlite3Database, "BEGIN TRANSACTION", NULL, NULL, NULL);
+                if (sqlite3_prepare_v2(sqlite3Database, [packageQuery UTF8String], -1, &packageStatement, nil) == SQLITE_OK) {
+                    for (AUPMPackage *package in packagesArray) {
+                        //Populate packages database with packages from repo
+                        sqlite3_bind_int(packageStatement, 1, repoID);
+                        sqlite3_bind_text(packageStatement, 2, [[package packageName] UTF8String], -1, SQLITE_TRANSIENT);
+                        sqlite3_bind_text(packageStatement, 3, [[package packageIdentifier] UTF8String], -1, SQLITE_TRANSIENT);
+                        sqlite3_bind_text(packageStatement, 4, [[package version] UTF8String], -1, SQLITE_TRANSIENT);
+                        sqlite3_bind_text(packageStatement, 5, [[package section] UTF8String], -1, SQLITE_TRANSIENT);
+                        sqlite3_bind_text(packageStatement, 6, [[package description] UTF8String], -1, SQLITE_TRANSIENT);
+                        sqlite3_bind_text(packageStatement, 7, [[package depictionURL].absoluteString UTF8String], -1, SQLITE_TRANSIENT);
+                        sqlite3_step(packageStatement);
+                        sqlite3_reset(packageStatement);
+                        sqlite3_clear_bindings(packageStatement);
+                    }
+                    HBLogInfo(@"Finished packages for repo %@", [repo repoName]);
+                }
+                else {
+                    HBLogError(@"%s", sqlite3_errmsg(sqlite3Database));
+                }
+                sqlite3_finalize(packageStatement);
+                sqlite3_exec(sqlite3Database, "COMMIT TRANSACTION", NULL, NULL, NULL);
+                pthread_mutex_unlock(&mutex);
+            });
+        }
+    }
+    dispatch_group_wait(group, DISPATCH_TIME_FOREVER);
+    completion(true);
+}
+
 - (NSArray *)cachedListOfRepositories {
     HBLogInfo(@"Getting cached list of repos");
     sqlite3 *database;
@@ -180,7 +297,8 @@
             const char *sectionChars = (const char *)sqlite3_column_text(statement, 5);
             const char *descriptionChars = (const char *)sqlite3_column_text(statement, 6);
             const char *depictionChars = (const char *)sqlite3_column_text(statement, 7);
-            const char *sumChars = (const char *)sqlite3_column_text(statement, 9);
+            // const char *sumChars = (const char *)sqlite3_column_text(statement, 9);
+            // HBLogInfo(@"%s", sumChars);
             NSString *packageName = [[NSString alloc] initWithUTF8String:packageNameChars];
             NSString *packageID = [[NSString alloc] initWithUTF8String:packageIDChars];
             NSString *version = [[NSString alloc] initWithUTF8String:versionChars];
@@ -195,9 +313,9 @@
             {
                 depictionURL = [[NSString alloc] initWithUTF8String:depictionChars];
             }
-            NSString *md5sum = [[NSString alloc] initWithUTF8String:sumChars];
+            //NSString *md5sum = [[NSString alloc] initWithUTF8String:sumChars];
 
-            AUPMPackage *package = [[AUPMPackage alloc] initWithPackageName:packageName packageID:packageID version:version section:section description:description depictionURL:depictionURL sum:md5sum];
+            AUPMPackage *package = [[AUPMPackage alloc] initWithPackageName:packageName packageID:packageID version:version section:section description:description depictionURL:depictionURL sum:nil];
             [listOfPackages addObject:package];
         }
         sqlite3_finalize(statement);
