@@ -55,7 +55,12 @@
 	}
 
 	UIImage *sectionImage = [UIImage imageWithContentsOfFile:[NSString stringWithFormat:@"/Applications/Cydia.app/Sections/%@.png", [[package section] stringByReplacingOccurrencesOfString:@" " withString:@"_"]]];
-	cell.imageView.image = sectionImage;
+	if (sectionImage != NULL) {
+		cell.imageView.image = sectionImage;
+	}
+	else {
+		cell.imageView.image = [UIImage imageWithData:[_repo icon]];
+	}
 	cell.textLabel.text = [package packageName];
 	cell.detailTextLabel.text = [NSString stringWithFormat:@"%@ (%@)", [package packageIdentifier], [package version]];
 	return cell;
