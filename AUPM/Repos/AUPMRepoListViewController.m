@@ -4,6 +4,7 @@
 #import "AUPMRepoManager.h"
 #import "../AUPMDataViewController.h"
 #import "../Packages/AUPMPackageListViewController.h"
+#import "../AUPMDatabaseManager.h"
 
 @implementation AUPMRepoListViewController {
 	NSMutableArray *_objects;
@@ -12,8 +13,8 @@
 - (void)loadView {
 	[super loadView];
 
-	AUPMRepoManager *repoManager = [[AUPMRepoManager alloc] init];
-	_objects = [[repoManager managedRepoList] mutableCopy];
+	AUPMDatabaseManager *databaseManager = [[AUPMDatabaseManager alloc] initWithDatabaseFilename:@"aupmpackagedb.sql"];
+	_objects = [[databaseManager cachedListOfRepositories] mutableCopy];
 
 	UIBarButtonItem *refreshItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemRefresh target:self action:@selector(refreshPackages:)];
 	self.navigationItem.rightBarButtonItem = refreshItem;
@@ -106,6 +107,7 @@
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
 	[tableView deselectRowAtIndexPath:indexPath animated:YES];
 	AUPMRepo *repo = _objects[indexPath.row];
+	HBLogInfo(@"Loading repo #%d (%@)", [repo repoIdentifier], [repo repoName]);
 	AUPMPackageListViewController *packageListVC = [[AUPMPackageListViewController alloc] initWithRepo:repo];
     [self.navigationController pushViewController:packageListVC animated:YES];
 }

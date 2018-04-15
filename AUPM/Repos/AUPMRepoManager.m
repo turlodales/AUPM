@@ -36,7 +36,6 @@ NSArray *packages_to_array(const char *path);
     NSArray *listOfFiles = [fileManager contentsOfDirectoryAtPath:aptListDirectory error:nil];
     NSMutableArray *managedRepoList = [[NSMutableArray alloc] init];
 
-    int i = 1;
     for (NSString *path in listOfFiles) {
         if (([path rangeOfString:@"Release"].location != NSNotFound) && ([path rangeOfString:@".gpg"].location == NSNotFound)) {
             NSString *fullPath = [NSString stringWithFormat:@"/var/lib/apt/lists/%@", path];
@@ -72,8 +71,6 @@ NSArray *packages_to_array(const char *path);
             }
 
             AUPMRepo *source = [[AUPMRepo alloc] initWithRepoInformation:dict];
-            [source setRepoID:i];
-            i++;
             [managedRepoList addObject:source];
         }
     }
