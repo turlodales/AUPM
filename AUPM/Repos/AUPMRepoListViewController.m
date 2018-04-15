@@ -15,7 +15,7 @@
 	AUPMRepoManager *repoManager = [[AUPMRepoManager alloc] init];
 	_objects = [[repoManager managedRepoList] mutableCopy];
 
-	UIBarButtonItem *refreshItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemRefresh target:self action:@selector(refreshPackages)];
+	UIBarButtonItem *refreshItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemRefresh target:self action:@selector(refreshPackages:)];
 	self.navigationItem.rightBarButtonItem = refreshItem;
 
 	UIBarButtonItem *addItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(showAddRepoAlert)];
@@ -24,8 +24,12 @@
 	self.title = @"Sources";
 }
 
-- (void)refreshPackages {
-	AUPMDataViewController *dataLoadViewController = [[AUPMDataViewController alloc] initWithAction:1];
+- (void)refreshPackages:(BOOL)full {
+	int action = 1;
+	if (full) {
+		action = 0;
+	}
+	AUPMDataViewController *dataLoadViewController = [[AUPMDataViewController alloc] initWithAction:action];
 
 	[self presentViewController:dataLoadViewController animated:true completion:nil];
 }
@@ -68,7 +72,7 @@
 
 	AUPMRepoManager *repoManager = [[AUPMRepoManager alloc] init];
 	[repoManager addSource:url];
-	[self refreshPackages];
+	[self refreshPackages:true];
 }
 
 #pragma mark - Table View Data Source
@@ -115,7 +119,7 @@
 		AUPMRepoManager *repoManager = [[AUPMRepoManager alloc] init];
 		[repoManager deleteSource:[_objects objectAtIndex:indexPath.row]];
 		[_objects removeObjectAtIndex:indexPath.row];
-		[self refreshPackages];
+		[self refreshPackages:true];
 		[tableView reloadData];
     }
 }

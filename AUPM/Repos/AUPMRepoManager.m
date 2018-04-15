@@ -120,7 +120,8 @@ NSArray *packages_to_array(const char *path);
     NSArray *packageArray = packages_to_array([cachedPackagesFile UTF8String]);
     NSMutableArray *packageListForRepo = [[NSMutableArray alloc] init];
 
-    for (NSMutableDictionary *dict in packageArray) {
+    for (NSDictionary *package in packageArray) {
+        NSMutableDictionary *dict = [package mutableCopy];
         if (dict[@"Name"] == NULL) {
             dict[@"Name"] = dict[@"Package"];
         }

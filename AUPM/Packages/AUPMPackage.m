@@ -8,7 +8,12 @@
     [self setPackageVersion:information[@"Version"]];
     [self setSection:information[@"Section"]];
     [self setDescription:information[@"Description"]];
-    [self setDepictionURL:[NSURL URLWithString:[NSString stringWithFormat:@"%@", information[@"Depiction"]]]];
+
+    NSString *urlString = [information[@"Depiction"] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+    //NSString *webStringURL = [webName stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+    urlString = [urlString substringToIndex:[urlString length] - 3];
+    NSURL *url = [NSURL URLWithString:urlString];
+    [self setDepictionURL:url];
     [self setSum:information[@"MD5sum"]];
 
     return self;
@@ -93,9 +98,7 @@
 }
 
 - (void)setDepictionURL:(NSURL *)url {
-    if (url != NULL) {
-        depictionURL = url;
-    }
+    depictionURL = url;
 }
 
 - (void)setSum:(NSString *)md5 {
@@ -131,6 +134,7 @@
     if ([[[depictionURL absoluteString] substringWithRange:NSMakeRange(0, 1)] isEqual:@"/"]) {
         NSString *fixed = [@"http:" stringByAppendingString:[depictionURL absoluteString]];
         [self setDepictionURL:[NSURL URLWithString:fixed]];
+        HBLogInfo(@"Fixing depiction url %@", fixed);
         return depictionURL;
     }
     else {

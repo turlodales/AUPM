@@ -28,12 +28,13 @@ NSArray *packages_to_array(const char *path)
     CFMutableDictionaryRef package = CFDictionaryCreateMutable(kCFAllocatorDefault, 10, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
     while (fgets(line, sizeof(line), file)) {
         if (strcmp(line, "\n") != 0) {
-            int len = (int)strlen(line);
-            char *colon = strchr(line, ':');
+            const char *info = strtok(line, "\n");
+            int len = (int)strlen(info);
+            char *colon = strchr(info, ':');
             if (colon != NULL) {
-                int colonIndex = (int)(colon - line);
+                int colonIndex = (int)(colon - info);
 
-                const UInt8 *bytes = (const UInt8 *)line;
+                const UInt8 *bytes = (const UInt8 *)info;
                 CFStringRef key = CFStringCreateWithBytes(kCFAllocatorDefault, bytes, colonIndex, kCFStringEncodingMacRoman, true);
                 bytes += colonIndex + 2;
                 CFStringRef value = CFStringCreateWithBytes(kCFAllocatorDefault, bytes, len - (colonIndex + 1), kCFStringEncodingMacRoman, true);

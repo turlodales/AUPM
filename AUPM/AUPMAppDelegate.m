@@ -12,7 +12,7 @@
 
 
 	if ([[NSUserDefaults standardUserDefaults] boolForKey:@"firstSetupComplete"]) {
-		AUPMDataViewController *dataLoadViewController = [[AUPMDataViewController alloc] initWithAction:1];
+		AUPMDataViewController *dataLoadViewController = [[AUPMDataViewController alloc] initWithAction:0];
 
 		self.window.rootViewController = dataLoadViewController;
 	}
