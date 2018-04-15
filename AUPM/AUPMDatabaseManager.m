@@ -74,13 +74,19 @@ bool packages_file_changed(FILE* f1, FILE* f2);
             NSString *repoQuery = @"insert into repos(repoName, repoBaseFileName, description, repoURL, icon) values(?,?,?,?,?)";
 
             //Populate repo database
+            NSError *error;
+            NSData *iconData = [NSData dataWithContentsOfURL:[repo iconURL] options:NSDataReadingUncached error:&error];
+            if (error != nil) {
+                HBLogError(@"error while getting icon: %@", error);
+            }
+
             pthread_mutex_lock(&mutex);
             if (sqlite3_prepare_v2(database, [repoQuery UTF8String], -1, &repoStatement, nil) == SQLITE_OK) {
                 sqlite3_bind_text(repoStatement, 1, [[repo repoName] UTF8String], -1, SQLITE_TRANSIENT);
                 sqlite3_bind_text(repoStatement, 2, [[repo repoBaseFileName] UTF8String], -1, SQLITE_TRANSIENT);
                 sqlite3_bind_text(repoStatement, 3, [[repo description] UTF8String], -1, SQLITE_TRANSIENT);
                 sqlite3_bind_text(repoStatement, 4, [[repo repoURL] UTF8String], -1, SQLITE_TRANSIENT);
-                sqlite3_bind_blob(repoStatement, 5, (__bridge const void *)[repo icon], -1, SQLITE_TRANSIENT);
+                sqlite3_bind_blob(repoStatement, 5, [iconData bytes], [iconData length], SQLITE_TRANSIENT);
                 sqlite3_step(repoStatement);
             }
             else {
@@ -279,7 +285,8 @@ bool packages_file_changed(FILE* f1, FILE* f2);
             NSString *repoBaseFileName = [[NSString alloc] initWithUTF8String:repoFileNameChars];
             NSString *description = [[NSString alloc] initWithUTF8String:descriptionChars];
             NSString *repoURL = [[NSString alloc] initWithUTF8String:repoURLChars];
-            AUPMRepo *repo = [[AUPMRepo alloc] initWithRepoID:uniqueId name:repoName baseFileName:repoBaseFileName description:description url:repoURL];
+            NSData *repoIcon = [[NSData alloc] initWithBytes:sqlite3_column_blob(statement, 5) length:sqlite3_column_bytes(statement, 5)];
+            AUPMRepo *repo = [[AUPMRepo alloc] initWithRepoID:uniqueId name:repoName baseFileName:repoBaseFileName description:description url:repoURL icon:repoIcon];
             [listOfRepositories addObject:repo];
         }
         sqlite3_finalize(statement);

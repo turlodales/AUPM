@@ -56,8 +56,10 @@ NSArray *packages_to_array(const char *path);
 
             NSString *baseFileName = [path stringByReplacingOccurrencesOfString:@"_Release" withString:@""];
             dict[@"baseFileName"] = baseFileName;
-            NSString *repoURL = baseFileName;
-            repoURL = [repoURL stringByReplacingOccurrencesOfString:@"_" withString:@"/"];
+            NSString *fullRepoURL = baseFileName;
+            fullRepoURL = [fullRepoURL stringByReplacingOccurrencesOfString:@"_" withString:@"/"];
+            dict[@"fullURL"] = fullRepoURL; //Store full URL for cydia icon
+            NSString *repoURL = [fullRepoURL copy];
             if ([repoURL rangeOfString:@"dists"].location != NSNotFound) {
                 NSArray *urlsep = [repoURL componentsSeparatedByString:@"dists"];
                 repoURL = [urlsep objectAtIndex:0];
@@ -66,7 +68,6 @@ NSArray *packages_to_array(const char *path);
             repoURL = [NSString stringWithFormat:@"http://%@", repoURL];
             repoURL = [repoURL substringToIndex:[repoURL length] - 1];
             dict[@"URL"] = repoURL;
-
             if ([baseFileName rangeOfString:@"saurik"].location != NSNotFound || [baseFileName rangeOfString:@"bigboss"].location != NSNotFound || [baseFileName rangeOfString:@"zodttd"].location != NSNotFound) {
                 dict[@"default"] = [NSNumber numberWithBool:true];
             }
