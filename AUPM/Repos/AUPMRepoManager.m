@@ -2,6 +2,7 @@
 #import "AUPMRepo.h"
 #import "../Packages/AUPMPackage.h"
 #include "dpkgver.c"
+#import "../AUPMDatabaseManager.h"
 
 @interface AUPMRepoManager ()
     @property (nonatomic, retain) NSMutableArray *repos;
@@ -162,14 +163,7 @@ NSArray *packages_to_array(const char *path);
         [updateListTask setArguments:updateArgs];
 
         [updateListTask launch];
-
-        NSTask *updateCydiaTask = [[NSTask alloc] init];
-        [updateCydiaTask setLaunchPath:@"/Applications/AUPM.app/supersling"];
-        NSArray *cydArgs = [[NSArray alloc] initWithObjects:@"cp", @"/var/mobile/Library/Caches/com.xtm3x.aupm/newsources.list", @"/var/mobile/Library/Caches/com.saurik.Cydia/sources.list", nil];
-        [updateCydiaTask setArguments:cydArgs];
-
-        [updateCydiaTask launch];
-        [updateCydiaTask waitUntilExit];
+        [updateListTask waitUntilExit];
     }
 }
 
@@ -206,15 +200,13 @@ NSArray *packages_to_array(const char *path);
         [updateListTask setArguments:updateArgs];
 
         [updateListTask launch];
-
-        NSTask *updateCydiaTask = [[NSTask alloc] init];
-        [updateCydiaTask setLaunchPath:@"/Applications/AUPM.app/supersling"];
-        NSArray *cydArgs = [[NSArray alloc] initWithObjects:@"cp", @"/var/mobile/Library/Caches/com.xtm3x.aupm/newsources.list", @"/var/mobile/Library/Caches/com.saurik.Cydia/sources.list", nil];
-        [updateCydiaTask setArguments:cydArgs];
-
-        [updateCydiaTask launch];
-        [updateCydiaTask waitUntilExit];
+        [updateListTask waitUntilExit];
     }
+
+    AUPMDatabaseManager *databaseManager = [[AUPMDatabaseManager alloc] initWithDatabaseFilename:@"aupmpackagedb.sql"];
+	sqlite3 *database = [databaseManager database];
+    [databaseManager deleteRepo:delRepo fromDatabase:database];
+    sqlite3_close(database);
 }
 
 @end

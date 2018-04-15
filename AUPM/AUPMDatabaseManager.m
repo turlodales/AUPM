@@ -205,7 +205,7 @@ bool packages_file_changed(FILE* f1, FILE* f2);
                 sqlite3_finalize(repoStatement);
                 pthread_mutex_unlock(&mutex);
 
-                sqlite3_exec(sqlite3Database, [[NSString stringWithFormat:@"DELETE FROM packages WHERE repoID = %d", repoID] UTF8String], NULL, NULL, NULL); //Remove all packages from repo
+                [self deletePackagesFromRepo:repo inDatabase:sqlite3Database];
 
                 NSArray *packagesArray = [repoManager packageListForRepo:repo];
                 HBLogInfo(@"Started to parse packages for repo %@", [repo repoName]);
@@ -240,6 +240,22 @@ bool packages_file_changed(FILE* f1, FILE* f2);
     }
     dispatch_group_wait(group, DISPATCH_TIME_FOREVER);
     completion(true);
+}
+
+- (sqlite3 *)database {
+    sqlite3 *database;
+    NSString *databasePath = [self.documentsDirectory stringByAppendingPathComponent:self.databaseFilename];
+    sqlite3_open([databasePath UTF8String], &database);
+    return database;
+}
+
+- (void)deletePackagesFromRepo:(AUPMRepo *)repo inDatabase:(sqlite3 *)database {
+    sqlite3_exec(database, [[NSString stringWithFormat:@"DELETE FROM packages WHERE repoID = %d", [repo repoIdentifier]] UTF8String], NULL, NULL, NULL);
+}
+
+- (void)deleteRepo:(AUPMRepo *)repo fromDatabase:(sqlite3 *)database {
+    sqlite3_exec(database, [[NSString stringWithFormat:@"DELETE FROM packages WHERE repoID = %d", [repo repoIdentifier]] UTF8String], NULL, NULL, NULL);
+    sqlite3_exec(database, [[NSString stringWithFormat:@"DELETE FROM repos WHERE repoID = %d", [repo repoIdentifier]] UTF8String], NULL, NULL, NULL);
 }
 
 - (NSArray *)cachedListOfRepositories {

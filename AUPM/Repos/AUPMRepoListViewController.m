@@ -38,7 +38,10 @@
 - (void)viewWillAppear:(BOOL)animated {
 	[super viewWillAppear:animated];
 
-	[self.tableView reloadData];
+	AUPMDatabaseManager *databaseManager = [[AUPMDatabaseManager alloc] initWithDatabaseFilename:@"aupmpackagedb.sql"];
+	_objects = [[databaseManager cachedListOfRepositories] mutableCopy];
+
+	[[self tableView] reloadData];
 }
 
 - (void)showAddRepoAlert {
@@ -107,7 +110,6 @@
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
 	[tableView deselectRowAtIndexPath:indexPath animated:YES];
 	AUPMRepo *repo = _objects[indexPath.row];
-	HBLogInfo(@"Loading repo #%d (%@)", [repo repoIdentifier], [repo repoName]);
 	AUPMPackageListViewController *packageListVC = [[AUPMPackageListViewController alloc] initWithRepo:repo];
     [self.navigationController pushViewController:packageListVC animated:YES];
 }
@@ -121,7 +123,6 @@
 		AUPMRepoManager *repoManager = [[AUPMRepoManager alloc] init];
 		[repoManager deleteSource:[_objects objectAtIndex:indexPath.row]];
 		[_objects removeObjectAtIndex:indexPath.row];
-		[self refreshPackages:true];
 		[tableView reloadData];
     }
 }
