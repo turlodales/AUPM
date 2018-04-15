@@ -3,6 +3,7 @@
 #import "AUPMDatabaseManager.h"
 #import "Repos/AUPMRepoListViewController.h"
 #import "Packages/AUPMPackageListViewController.h"
+#import "AUPMTabBarController.h"
 
 @interface AUPMDataViewController () {
     BOOL _action;
@@ -73,19 +74,8 @@
         [self dismissViewControllerAnimated:true completion:nil];
     }
     else {
-        UITabBarController *tabController = [[UITabBarController alloc] init];
+        AUPMTabBarController *tabController = [[AUPMTabBarController alloc] init];
 
-        UINavigationController *reposNavController = [[UINavigationController alloc] initWithRootViewController:[[AUPMRepoListViewController alloc] init]];
-        UITabBarItem *repoIcon = [[UITabBarItem alloc] initWithTitle:@"Sources" image:[UIImage imageNamed:@"Repo.png"] tag:0];
-        [repoIcon setFinishedSelectedImage:[UIImage imageNamed:@"Repo.png"] withFinishedUnselectedImage:[UIImage imageNamed:@"Repo.png"]];
-        [reposNavController setTabBarItem:repoIcon];
-
-        UINavigationController *packagesNavController = [[UINavigationController alloc] initWithRootViewController:[[AUPMPackageListViewController alloc] init]];
-        UITabBarItem *packageIcon = [[UITabBarItem alloc] initWithTitle:@"Packages" image:[UIImage imageNamed:@"Packages.png"] tag:1];
-        [packageIcon setFinishedSelectedImage:[UIImage imageNamed:@"Packages.png"] withFinishedUnselectedImage:[UIImage imageNamed:@"Packages.png"]];
-        [packagesNavController setTabBarItem:packageIcon];
-
-        tabController.viewControllers = [NSArray arrayWithObjects:reposNavController, packagesNavController,nil];
         [[UIApplication sharedApplication] keyWindow].rootViewController = tabController;
     }
 }
