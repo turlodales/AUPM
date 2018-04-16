@@ -25,7 +25,7 @@
     [self setPackageVersion:vers];
     [self setSection:sect];
     [self setDescription:desc];
-    [self setDepictionURL:[NSURL URLWithString:[NSString stringWithFormat:@"%@", url]]];
+    [self setDepictionURL:[NSURL URLWithString:url]];
     [self setSum:md5];
 
     return self;
@@ -131,7 +131,7 @@
 }
 
 - (NSURL *)depictionURL {
-    if ([[[depictionURL absoluteString] substringWithRange:NSMakeRange(0, 1)] isEqual:@"/"]) {
+    if ([[[depictionURL absoluteString] substringWithRange:NSMakeRange(0, 1)] isEqual:@"/"] && depictionURL != NULL) {
         NSString *fixed = [@"http:" stringByAppendingString:[depictionURL absoluteString]];
         [self setDepictionURL:[NSURL URLWithString:fixed]];
         HBLogInfo(@"Fixing depiction url %@", fixed);

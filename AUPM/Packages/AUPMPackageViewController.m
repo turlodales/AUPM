@@ -19,7 +19,7 @@
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-	
+
 	[self configureNavButton];
 }
 
@@ -30,13 +30,31 @@
 	CGFloat height = [[UIApplication sharedApplication] statusBarFrame].size.height + self.navigationController.navigationBar.frame.size.height + self.tabBarController.tabBar.frame.size.height;
 	_webView = [[WKWebView alloc] initWithFrame:CGRectMake(0,0, self.view.frame.size.width, self.view.frame.size.height - height)];
     [_webView setNavigationDelegate:self];
-    [_webView loadRequest:[[NSURLRequest alloc] initWithURL:[_package depictionURL]]];
+	NSURL *depictionURL = [_package depictionURL];
+    if (depictionURL != NULL) {
+		[_webView loadRequest:[[NSURLRequest alloc] initWithURL:depictionURL]];
+	}
+	else {
+		[_webView loadHTMLString:[self generateDepiction] baseURL:nil];
+	}
 	_webView.allowsBackForwardNavigationGestures = true;
     _progressBar = [[UIProgressView alloc] initWithFrame:CGRectMake(0, 0, [[UIScreen mainScreen] bounds].size.width, 9)];
     [_webView addSubview:_progressBar];
 	[self.view addSubview:_webView];
 
 	self.title = [_package packageName];
+}
+
+- (NSString *)generateDepiction {
+	NSError *error;
+	NSString *rawDepiction = [NSString stringWithContentsOfFile:@"/Applications/AUPM.app/package_depiction.html" encoding:NSUTF8StringEncoding error:&error];
+	if (error != nil) {
+		HBLogError(@"Error reading file: %@", error);
+	}
+
+	NSString *html = [NSString stringWithFormat:rawDepiction, [_package packageName], [_package packageName], [_package packageIdentifier], [_package version], [_package description]];
+
+	return html;
 }
 
 - (void)configureNavButton {
