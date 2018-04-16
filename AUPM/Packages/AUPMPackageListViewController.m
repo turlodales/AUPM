@@ -54,11 +54,16 @@
 		cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:identifier];
 	}
 
-	UIImage *sectionImage = [UIImage imageWithContentsOfFile:[NSString stringWithFormat:@"/Applications/Cydia.app/Sections/%@.png", [[package section] stringByReplacingOccurrencesOfString:@" " withString:@"_"]]];
+	NSString *section = [[package section] stringByReplacingOccurrencesOfString:@" " withString:@"_"];
+	if (_repo == NULL) {
+		section = [section substringToIndex:[section length] - 1]; //Remove null terminator
+	}
+	NSString *iconPath = [NSString stringWithFormat:@"/Applications/Cydia.app/Sections/%@.png", section];
+	UIImage *sectionImage = [UIImage imageWithContentsOfFile:iconPath];
 	if (sectionImage != NULL) {
 		cell.imageView.image = sectionImage;
 	}
-	else {
+	else if (_repo != NULL) {
 		cell.imageView.image = [UIImage imageWithData:[_repo icon]];
 	}
 	cell.textLabel.text = [package packageName];
@@ -71,7 +76,6 @@
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
 	[tableView deselectRowAtIndexPath:indexPath animated:YES];
 	AUPMPackage *package = _objects[indexPath.row];
-	HBLogInfo(@"depic url: %@", [package depictionURL]);
 	AUPMPackageViewController *packageVC = [[AUPMPackageViewController alloc] initWithPackage:package];
     [self.navigationController pushViewController:packageVC animated:YES];
 }
