@@ -20,7 +20,7 @@ A Useless Package Manager for iOS
   - [ ] Ability to reinstall packages that are installed from a repository
   - [ ] Ability to downgrade a package from a repository if the repository provides a previous version
   - [x] View a packages depiction if one is available
-  - [ ] Display package details on the depiction page
+  - [x] Display package details on the depiction page
 - [ ] Search
 - [ ] Updates
 
